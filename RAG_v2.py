@@ -513,7 +513,6 @@ class Structure:
 							rmsd=sorted_results[i][4]
 							#print top, order, pdb, fnc, method, res, rmsd
 							#tenmatches.write("%s\t%s\t%d\t%s\t%s\t%s\t%s\t%.3f\n"%(frag,top,order,pdb,fnc,method,res,rmsd))
-							print "Order%d"%(order)
 							allmatches.write("%s\t%s\t%d\t%s\t%s\t%s\t%s\t%.3f\n"%(frag,top,order,pdb,fnc,method,res,rmsd))
 							break
 					if order==10:

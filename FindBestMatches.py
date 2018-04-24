@@ -14,13 +14,15 @@ from RAG_v2 import Structure
 #This script also creates 2 subfolders: PML and MATCHES to store pymol script files & results of alignments, and the best matching results sorted wrt RMDSD values
 #Best matches are searched against the RAG-3D database. The path to the database should be specified.
 
-
-if len(sys.argv) != 3:
-   	print "Require 2 arguments: %s <QueryName> <RandomNumber>" %(sys.argv[0])
+#S.J. 02/04/2016 - changing the command line arguments to take three arguments
+if len(sys.argv) != 4:
+   	print "Require 3 arguments: %s <QueryName> <Input Directory> <Output Directory>" %(sys.argv[0])
    	sys.exit(1)
     
 QueryName = sys.argv[1] #structure name without the extension
-RandomNumber = sys.argv[2] #name output path
+#RandomNumber = sys.argv[2] #name output path
+InputDir = sys.argv[2]
+RandomNumber = sys.argv[3]
 
 try:
 	os.makedirs(RandomNumber)
@@ -30,9 +32,12 @@ except OSError:
 	else:
 		raise
 
-output_path="./%s/"%RandomNumber
-PML_path="./%s/PML/"%RandomNumber
-MATCH_path="./%s/MATCHES/"%RandomNumber
+#output_path="./%s/"%RandomNumber
+#PML_path="./%s/PML/"%RandomNumber
+#MATCH_path="./%s/MATCHES/"%RandomNumber
+output_path="%s"%RandomNumber
+PML_path="%sPML/"%RandomNumber
+MATCH_path="%sMATCHES/"%RandomNumber
 
 
 try:
@@ -52,18 +57,21 @@ except OSError:
 		raise
 
 
-f1="./BPSEQ/%s.bpseq"%QueryName
-f2="./Loops-below-11v-numbers/Loops%s.txt"%QueryName
-f3="./GRAPH/%s_PDBGraph.pdb"%QueryName
-f4="./Vertices-below-11v-numbers/Vertices%s.txt"%QueryName
-f5="./PDB/%s.pdb"%QueryName
+#f1="./BPSEQ/%s.bpseq"%QueryName
+#f2="./Loops-below-11v-numbers/Loops%s.txt"%QueryName
+#f3="./GRAPH/%s_PDBGraph.pdb"%QueryName
+#f4="./Vertices-below-11v-numbers/Vertices%s.txt"%QueryName
+#f5="./PDB/%s.pdb"%QueryName
+#f6="./PdbToNb.txt"
+
+f1="%s%s.bpseq"%(InputDir,QueryName)
+f2="%sLoops%s.txt"%(InputDir,QueryName)
+f3="%s%s_PDBGraph.pdb"%(InputDir,QueryName)
+f4="%sVertices%s.txt"%(InputDir,QueryName)
+f5="%s%s.pdb"%(InputDir,QueryName)
 f6="./PdbToNb.txt"
-#f1="../3IYR/%s.bpseq"%QueryName
-#f2="../3IYR/Loops%s.txt"%QueryName
-#f3="../3IYR/%s_PDBGraph.pdb"%QueryName
-#f4="../3IYR/Vertices%s.txt"%QueryName
-#f5="../3IYR/%s.pdb"%QueryName
-	
+
+
 #dbpath="/ehome/cs4367/FullDataset/RAG-3D-26June/Results/" #for search
 dbpath="/Users/sj78/sourcecodes/RAG3D_Database/Results/" #for search
 
