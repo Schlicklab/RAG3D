@@ -65,7 +65,7 @@ class Structure:
 		
 		#subgraph.py is the modified version of the RNA matrix code
 		sfile=self.Subgraphs_dir + self.name + "-subgraphs"
-		os.system('/opt/python2.7.3/bin/python2.7 subgraphs_naoto.py  %s | grep "Subgraph" | sort -nrk 3,3 > %s'%(self.bpseqfile,sfile))
+		os.system('/usr/bin/python2.7 subgraphs_naoto.py  %s | grep "Subgraph" | sort -nrk 3,3 > %s'%(self.bpseqfile,sfile))
 
 		try:
 			file1=open(sfile,"r")
@@ -209,7 +209,7 @@ class Structure:
 				self.pdbinfo.append(pdblines[i])
 		#print self.pdbinfo
 		for i in range(len(vertlines)):
-    			if vertlines[i].startswith("Vertices:"):
+            		if vertlines[i].startswith("Vertices:"):
 				check=0
 				for out in ignored_loops:
 					if int(vertlines[i].split()[3]) in out:
@@ -463,18 +463,24 @@ class Structure:
 					pml.write("align %s, %s-%s-3D-frgt\n"%(f[0:-4],self.name,key))
 				pml.close()
 				print "Finding matches for %s...\n"%key
-				os.system("pymol -cq %s/PML/%s.pml > %s/PML/Alignment-%s.out"%(self.outpath,key,self.outpath,key))
+				os.system("/Applications/MacPyMOL.app/Contents/MacOS/MacPyMOL -cq %s/PML/%s.pml > %s/PML/Alignment-%s.out"%(self.outpath,key,self.outpath,key))
 				resultsfile=open("%s/PML/Alignment-%s.out"%(self.outpath,key),"r")
 				mylines=resultsfile.readlines()
 				resultsfile.close()
 				j=0
 				for line in mylines:
 					columns=line.split()
+					if columns[1]=="%s-%s-3D-frgt,"%(self.name,key): #this if statement added by S.J. - 01/20/2016 - as the rmsd between the same structure was not being calculated
+						rmsd=0.000
+						allresults[j].append(rmsd)
+						j+=1
 					if columns[0]=="Executive:":
 						rmsd=float(columns[3])
 						allresults[j].append(rmsd)
 						j+=1
-				sorted_results=sorted(allresults, key=lambda x:float(x[4])) #sort wrt rmsd 
+				sorted_results=sorted(allresults, key=lambda x:float(x[4])) #sort wrt rmsd
+				#for i in range(len(sorted_results)):
+					#print "Sorted: %s"%(sorted_results[i])
 
 				best_results=[]#10 best hits
 				count=0
@@ -485,24 +491,33 @@ class Structure:
 					if i==len(sorted_results)-1:
 						break
 				#tenmatches=open("%s/MATCHES/%s-10matches"%(self.outpath,key),"w")
-				for i in range(len(best_results)): 
-					os.system("cp %s/%s-3D-frgt.pdb %s/MATCHES/"%(mypath,best_results[i][3],self.outpath))
-					os.system("cp %s/%s-AA-frgt.pdb %s/MATCHES/"%(aapath,best_results[i][3],self.outpath))
+				#for i in range(len(best_results)):
+				order=0;
+				for i in range(len(sorted_results)):
+					#print "Best Results Before=%s"%(best_results[i][2])
+					#os.system("cp %s/%s-3D-frgt.pdb %s/MATCHES/"%(mypath,best_results[i][3],self.outpath))
+					#os.system("cp %s/%s-AA-frgt.pdb %s/MATCHES/"%(aapath,best_results[i][3],self.outpath))
 					for line in fnclines:
 						columns=line.split('\t')
-						if best_results[i][2]==columns[0]:
-							frag=best_results[i][3]
-							top=best_results[i][1]
-							order=i+1
-							pdb=best_results[i][2]
+						if sorted_results[i][2]==columns[0]:
+							os.system("cp %s/%s-3D-frgt.pdb %s/MATCHES/"%(mypath,sorted_results[i][3],self.outpath))
+							os.system("cp %s/%s-AA-frgt.pdb %s/MATCHES/"%(aapath,sorted_results[i][3],self.outpath))
+							frag=sorted_results[i][3]
+							top=sorted_results[i][1]
+							order+=1
+							#order=i+1
+							pdb=sorted_results[i][2]
 							fnc=columns[1]
 							method=columns[2]
 							res=columns[3].strip()
-							rmsd=best_results[i][4]
+							rmsd=sorted_results[i][4]
 							#print top, order, pdb, fnc, method, res, rmsd
 							#tenmatches.write("%s\t%s\t%d\t%s\t%s\t%s\t%s\t%.3f\n"%(frag,top,order,pdb,fnc,method,res,rmsd))
+							print "Order%d"%(order)
 							allmatches.write("%s\t%s\t%d\t%s\t%s\t%s\t%s\t%.3f\n"%(frag,top,order,pdb,fnc,method,res,rmsd))
 							break
+					if order==10:
+						break
 				#tenmatches.close()
 				allmatches.write('\n')
 			else:

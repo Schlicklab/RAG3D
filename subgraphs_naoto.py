@@ -1,7 +1,9 @@
 #!/usr/local/bin/python
 import sys
-from numarray import *
-import numarray.linear_algebra as LA
+#from numarray import *
+#import numarray.linear_algebra as LA
+from numpy import *
+import numpy.linalg as LA
 from decimal import *
 from copy import deepcopy
 from itertools import permutations
@@ -285,15 +287,19 @@ class RNAInfo:
         	allvert=[]
         	alljunc=[]
                 juncvert=[] #junction vertices (vertices with more than 2 connections)
+		
         	for i in range(len(self.adjMatrix)):
             		if self.degMatrix[i][i] <= 2:
-                		vertices=[]
-                		vertices.append(i)
-                		for j in range(len(self.adjMatrix[i])):
+                		#vertices=[]
+                		#vertices.append(i)
+                		for j in range(i,len(self.adjMatrix[i])):
                     			if int(self.adjMatrix[i][j])==1 and self.degMatrix[j][j] <=2:
+						vertices=[]
+                				vertices.append(i)
                         			vertices.append(j)
-                		allvert.append(vertices)
-        
+                				allvert.append(vertices)
+				#print "all vertices", vertices
+       		 
         
             		if int(self.degMatrix[i][i])<20:
                 		vertices=[]
@@ -312,6 +318,7 @@ class RNAInfo:
                         			junction.append(j)
                 		alljunc.append(junction)
                
+        	#print "allvert", allvert
 		#sort subgraph lists to find duplicates such as [0,1] and [1,0]
 		set_vert=[set(i1) for i1 in allvert]
 		allvert=[list(x) for x in set_vert]
@@ -717,7 +724,7 @@ def calcEigen(RNA,arg):
 		loadEigenvalues(len(RNA.Nodes))
 		RNA.laplacian = array(RNA.degMatrix) - array(RNA.adjMatrix)
 		#RNA.printLpl()
-		eigen = sort(LA.eigenvalues(RNA.laplacian))
+		eigen = sort(LA.eigvals(RNA.laplacian))
 		#print eigen
 		decimalArray = []
 		decimalPlace = Decimal("0.0001")
@@ -782,7 +789,7 @@ def calcEigen_subgraphs(RNA,myvertices):
 		sublaplacian = array(subdegree) - array(subadjacency)
 
 		Arraylaplacian = array(sublaplacian)
-		eigen = sort(LA.eigenvalues(Arraylaplacian))
+		eigen = sort(LA.eigvals(Arraylaplacian))
 
 		decimalArray = []
 		decimalPlace = Decimal("0.0001")
