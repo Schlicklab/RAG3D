@@ -52,20 +52,20 @@ except OSError:
 		raise
 
 
-#f1="../FullDataset/BPSEQ/%s.bpseq"%QueryName
-#f2="../FullDataset/Loops-below-11v-numbers/Loops%s.txt"%QueryName
-#f3="../FullDataset/GRAPH/%s_PDBGraph.pdb"%QueryName
-#f4="../FullDataset/Vertices-below-11v-numbers/Vertices%s.txt"%QueryName
-#f5="../FullDataset/PDB/%s.pdb"%QueryName
+f1="./BPSEQ/%s.bpseq"%QueryName
+f2="./Loops-below-11v-numbers/Loops%s.txt"%QueryName
+f3="./GRAPH/%s_PDBGraph.pdb"%QueryName
+f4="./Vertices-below-11v-numbers/Vertices%s.txt"%QueryName
+f5="./PDB/%s.pdb"%QueryName
 f6="./PdbToNb.txt"
-f1="../3IYR/%s.bpseq"%QueryName
-f2="../3IYR/Loops%s.txt"%QueryName
-f3="../3IYR/%s_PDBGraph.pdb"%QueryName
-f4="../3IYR/Vertices%s.txt"%QueryName
-f5="../3IYR/%s.pdb"%QueryName
+#f1="../3IYR/%s.bpseq"%QueryName
+#f2="../3IYR/Loops%s.txt"%QueryName
+#f3="../3IYR/%s_PDBGraph.pdb"%QueryName
+#f4="../3IYR/Vertices%s.txt"%QueryName
+#f5="../3IYR/%s.pdb"%QueryName
 	
 #dbpath="/ehome/cs4367/FullDataset/RAG-3D-26June/Results/" #for search
-dbpath="/ehome/cs4367/FullDataset/RAG-3D/Results/" #for search
+dbpath="/Users/sj78/sourcecodes/RAG3D_Database/Results/" #for search
 
 fnc_details="./details.txt" #this is for web tool. finds the fnc, experimental method and resolution data
 
