@@ -557,7 +557,8 @@ def connectNodes(RNA):
 def calcEigen(RNA,arg):
 	if len(RNA.Nodes)-1==1:
 		print "1_1" 
-	elif len(RNA.Nodes)>11:
+	#elif len(RNA.Nodes)>11:
+	elif len(RNA.Nodes)>14: # S.J. 05/12/2017 - to take into account graph with vertices 11-13
 		print "TMV,%d" %(len(RNA.Nodes)-1)
 	else:
 		loadEigenvalues(len(RNA.Nodes))
@@ -705,7 +706,8 @@ def main():
 			RNA.printDeg()
 			calcEigen(RNA,arg)
 			labelBases(RNA) #must come after sort!1
-			if len(RNA.Nodes)-1==1 or len(RNA.Nodes)>11:
+			#if len(RNA.Nodes)-1==1 or len(RNA.Nodes)>11:
+			if len(RNA.Nodes)-1==1 or len(RNA.Nodes)>14: # S.J. 05/12/2017 - to take into account graphs with 11-13 vertices as well
 				pass
 #			else:
 #label(RNA)
