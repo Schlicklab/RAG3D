@@ -67,11 +67,13 @@ except OSError:
 
 f1="%s%s.bpseq"%(InputDir,QueryName)
 f2="%sLoops%s.txt"%(InputDir,QueryName)
-f3="%s%s_PDBGraph.pdb"%(InputDir,QueryName)
+f3="%s%s_P2Graph.pdb"%(InputDir,QueryName)
+#f3="%s%s_PDBGraph.pdb"%(InputDir,QueryName)
 f4="%sVertices%s.txt"%(InputDir,QueryName)
 #f5="%s%s.pdb"%(InputDir,QueryName) S.J. commented to not read the pdb file
 f5="File not needed"
 f6="./PdbToNb.txt"
+f7="%sVertexTypes%s.txt"%(InputDir,QueryName) # S.J. 05/07/2017 for reading in vertex types
 
 
 #dbpath="/ehome/cs4367/FullDataset/RAG-3D-26June/Results/" #for search
@@ -80,7 +82,7 @@ dbpath="/Users/sj78/sourcecodes/RAG-3D-Feb2016/Results/" #for search
 
 fnc_details="./details.txt" #this is for web tool. finds the fnc, experimental method and resolution data
 
-R=Structure(QueryName,f1,f2,f3,f4,f5,f6,output_path)
+R=Structure(QueryName,f1,f2,f3,f4,f5,f6,f7,output_path) # S.J. added f7
 R.create_dirs()
 R.readfiles()
 #R.print_subgraphs()

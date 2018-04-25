@@ -5,7 +5,7 @@ import numpy
 import time
 
 class Structure:
-	def __init__(self,name,bpseqfile,loopfile, graphfile, vertfile, pdbfile, pdbnbfile, outpath):
+	def __init__(self,name,bpseqfile,loopfile, graphfile, vertfile, pdbfile, pdbnbfile, vertTypefile, outpath):
 		self.name=name 
 		self.bpseqfile=bpseqfile
 		self.loopfile=loopfile
@@ -13,6 +13,7 @@ class Structure:
 		self.vertfile=vertfile
 		self.pdbfile=pdbfile
 		self.pdbnbfile=pdbnbfile
+        	self.vertTypefile=vertTypefile # S.J. 05/07/2017
 		self.outpath=outpath
 		
 		#Under outpath create 3 directories
@@ -125,6 +126,16 @@ class Structure:
 		nblines=file6.readlines()
 		file6.close()
 
+       		 # S.J. 05/07/2017 - added to read the vertType file
+       		 try:
+           		 file7=open(self.vertTypefile,"r")
+       		 except IOError:
+           		print >> sys.stderr, "Verttype file could not be opened"
+            		return False
+            		#sys.exit()
+        	vertTypelines=file7.readlines()
+        	file7.close()
+
 		try:
 			infofile=open(self.outpath + "Query_info.txt","w") #for web page
 		except IOError:
@@ -210,7 +221,7 @@ class Structure:
 		#		self.pdbinfo.append(pdblines[i])
 		#print self.pdbinfo
 		for i in range(len(vertlines)):
-            		if vertlines[i].startswith("Vertices:"):
+		           if vertlines[i].startswith("Vertices:"):
 				check=0
 				for out in ignored_loops:
 					if int(vertlines[i].split()[3]) in out:
@@ -258,6 +269,7 @@ class Structure:
 		#print self.Vert
 
 		return True
+            
 	def print_subgraphs(self):
 		#### Print Subgraph id and vertices
 		print "Subgraphs:"
