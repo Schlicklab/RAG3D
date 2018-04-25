@@ -107,14 +107,14 @@ class Structure:
 		vertlines=file4.readlines()
 		file4.close()
 
-		try:
-			file5=open(self.pdbfile,"r")
-		except IOError:
-			print >> sys.stderr, "Pdb file could not be opened"
-			#sys.exit()
-			return False
-		pdblines=file5.readlines()
-		file5.close()
+		#try: S.J. commented out to not read the pdb file
+		#	file5=open(self.pdbfile,"r")
+		#except IOError:
+		#	print >> sys.stderr, "Pdb file could not be opened"
+		#	#sys.exit()
+		#	return False
+		#pdblines=file5.readlines()
+		#file5.close()
 
 		try:
 			file6=open(self.pdbnbfile,"r")
@@ -204,9 +204,10 @@ class Structure:
 		except NameError:
 			junc_exists=False
 
-		for i in range(len(pdblines)):
-			if 'ATOM' in pdblines[i]:
-				self.pdbinfo.append(pdblines[i])
+		#S.J. commented out to not use the pdb file
+		#for i in range(len(pdblines)):
+		#	if 'ATOM' in pdblines[i]:
+		#		self.pdbinfo.append(pdblines[i])
 		#print self.pdbinfo
 		for i in range(len(vertlines)):
             		if vertlines[i].startswith("Vertices:"):
@@ -354,13 +355,16 @@ class Structure:
 			sys.exit()
 
 		
-		diff=int(self.pdbinfo[0][22:26])-1 #read the number of first atom. for in case if it does not start with 1! the difference btw atom no in pdb and bpseq
+		#diff=int(self.pdbinfo[0][22:26])-1 #read the number of first atom. for in case if it does not start with 1! the difference btw atom no in pdb and bpseq
 		for line in self.pdbinfo:
-			atom=int(line[22:26])
+			#atom=int(line[22:26])
+			atom=1
 			for i in range(len(values)):
-				myrange=(values[i][0]+diff,values[i][1]+diff) #bpseq starts with 1. if pdb atom no starts with >1, add the difference! 
+				#myrange=(values[i][0]+diff,values[i][1]+diff) #bpseq starts with 1. if pdb atom no starts with >1, add the difference!
+				myrange=(values[i][0],values[i][1])
 				if atom in range(*myrange): #star is used to unpack the tuple (x,y)
 					frgt.write("%s"%line)
+			atom+=1
 		frgt.write("END\n")
 		frgt.close()
 
