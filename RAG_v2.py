@@ -26,6 +26,7 @@ class Structure:
 		self.graphinfo=[]
 		self.pdbinfo=[]
 		self.vertinfo=[]
+		self.vertTypeinfo=[] # S.J. 05/09/2017
 		self.ID={} #subgraph id and corresponding vertices. 2_1-1:[0,1] or 3_1-2:[0,1,2]
 		self.sorted_allinfo=[] #loop & graph files info.
 		self.Vert={} #ordering number and ibp from loops file & atom no from graph file. 0:[1,3,18,28,1]
@@ -126,11 +127,11 @@ class Structure:
 		nblines=file6.readlines()
 		file6.close()
 
-       		 # S.J. 05/07/2017 - added to read the vertType file
-       		 try:
-           		 file7=open(self.vertTypefile,"r")
-       		 except IOError:
-           		print >> sys.stderr, "Verttype file could not be opened"
+        	# S.J. 05/07/2017 - added to read the vertType file
+        	try:
+            		file7=open(self.vertTypefile,"r")
+        	except IOError:
+            		print >> sys.stderr, "Verttype file could not be opened"
             		return False
             		#sys.exit()
         	vertTypelines=file7.readlines()
@@ -221,7 +222,7 @@ class Structure:
 		#		self.pdbinfo.append(pdblines[i])
 		#print self.pdbinfo
 		for i in range(len(vertlines)):
-		           if vertlines[i].startswith("Vertices:"):
+           		if vertlines[i].startswith("Vertices:"):
 				check=0
 				for out in ignored_loops:
 					if int(vertlines[i].split()[3]) in out:
@@ -230,6 +231,16 @@ class Structure:
         				self.vertinfo.append(map(int,[vertlines[i].split()[1],vertlines[i].split()[3]]))
 		#print "vertices info", self.vertinfo
 	
+    
+		for i in range(len(vertTypelines)):
+			x=vertTypelines[i].split(":")[0]
+			y=x.split()[0]
+			z=int(y)
+			st=vertTypelines[i].split(":")[1]
+			st1=st.split("\n")[0]
+			self.vertTypeinfo.append([z,st1])
+		#print "vert type info", self.vertTypeinfo[0]
+    
 		IDlist=[]	
 		for i in range(len(sublines)):
 			columns=sublines[i].split()
@@ -447,7 +458,63 @@ class Structure:
 			frgt3d.write("%-6s%5d%5d\n"%("CONECT",int(connections[i][0]),int(connections[i][1])))
 				
 		frgt3d.close()
+	
+	# S.J. 05/09/2017 function added
+	def isSimilar(self,key,dbpath,fragment):
+		target_info=[]
+		fragment_info=[]
 		
+		file=open("%s/Results/%s/GRAPH-FRGT/%s-%s-3D-frgt.pdb"%(self.outpath,key.split('-')[0],self.name,key),"r")
+		targetlines=file.readlines()
+		file.close()
+		#getting vertex type for vertices in the target graph
+		for i in range(len(targetlines)):
+			if targetlines[i].split()[0] == "ATOM":
+				if targetlines[i].split()[2] == "N":
+					vertex=int(targetlines[i].split()[5])
+					for j in range(len(self.vertTypeinfo)):
+						if self.vertTypeinfo[j][0] == vertex:	
+							target_info.append(self.vertTypeinfo[j][1])
+		sorted_target=sorted(target_info)
+		#print sorted_target
+		
+		#getting vertex type for vertices in the fragment graph
+		fragmentpdb=fragment[3].split('-')[0] # number of the pdb id from which the fragment is
+		file=open("%sVertexTypes/VertexTypes%s.txt"%(dbpath,fragmentpdb),"r")
+		fragmentlines=file.readlines()
+		file.close()
+		fragment_full_info=[]
+		for i in range(len(fragmentlines)): # reading the full pdb vertex type from which the fragment comes
+			x=fragmentlines[i].split(":")[0]
+                        y=x.split()[0]
+                        z=int(y)
+                        st=fragmentlines[i].split(":")[1]
+                        st1=st.split("\n")[0]
+                        fragment_full_info.append([z,st1])
+		
+		file=open("%s%s/GRAPH-FRGT/%s-3D-frgt.pdb"%(dbpath,key.split('-')[0],fragment[3]),"r")
+		fragmentlines=file.readlines()
+		file.close()
+		for i in range(len(fragmentlines)):
+			if fragmentlines[i].split()[0] == "ATOM":
+				if fragmentlines[i].split()[2] == "N":
+					vertex=int(fragmentlines[i].split()[5])
+					for j in range(len(fragment_full_info)):
+						if fragment_full_info[j][0] == vertex:
+							fragment_info.append(fragment_full_info[j][1])
+		sorted_fragment=sorted(fragment_info)
+		#print sorted_fragment
+		
+		# check if the fragment and target have the same vertex types
+		flag=1
+		for i in range(len(sorted_target)):
+			if sorted_target[i] == sorted_fragment[i]:
+				flag=1
+			else:
+				flag=0
+				break
+		
+		return flag 
 
 	def find_matches(self,dbpath,inputfile):
 		time1=time.time()
@@ -495,6 +562,7 @@ class Structure:
 						allresults[j].append(rmsd)
 						j+=1
 				sorted_results=sorted(allresults, key=lambda x:float(x[4])) #sort wrt rmsd
+				#sorted_results=allresults
 				#for i in range(len(sorted_results)):
 					#print "Sorted: %s"%(sorted_results[i])
 
@@ -510,6 +578,9 @@ class Structure:
 				#for i in range(len(best_results)):
 				order=0;
 				for i in range(len(sorted_results)):
+					similar=self.isSimilar(key,dbpath,sorted_results[i]) # S.J. 05/09/2017 for checking if the fragment 
+					if similar==0:
+						continue
 					#print "Best Results Before=%s"%(best_results[i][2])
 					#os.system("cp %s/%s-3D-frgt.pdb %s/MATCHES/"%(mypath,best_results[i][3],self.outpath))
 					#os.system("cp %s/%s-AA-frgt.pdb %s/MATCHES/"%(aapath,best_results[i][3],self.outpath))
@@ -527,6 +598,7 @@ class Structure:
 							method=columns[2]
 							res=columns[3].strip()
 							rmsd=sorted_results[i][4]
+							#rmsd=0
 							#print top, order, pdb, fnc, method, res, rmsd
 							#tenmatches.write("%s\t%s\t%d\t%s\t%s\t%s\t%s\t%.3f\n"%(frag,top,order,pdb,fnc,method,res,rmsd))
 							allmatches.write("%s\t%s\t%d\t%s\t%s\t%s\t%s\t%.3f\n"%(frag,top,order,pdb,fnc,method,res,rmsd))

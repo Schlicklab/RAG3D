@@ -66,6 +66,7 @@ except OSError:
 #f6="./PdbToNb.txt"
 
 f1="%s%s.bpseq"%(InputDir,QueryName)
+#f1="%s%s_nopk.bpseq"%(InputDir,QueryName)
 f2="%sLoops%s.txt"%(InputDir,QueryName)
 f3="%s%s_P2Graph.pdb"%(InputDir,QueryName)
 #f3="%s%s_PDBGraph.pdb"%(InputDir,QueryName)
@@ -78,7 +79,8 @@ f7="%sVertexTypes%s.txt"%(InputDir,QueryName) # S.J. 05/07/2017 for reading in v
 
 #dbpath="/ehome/cs4367/FullDataset/RAG-3D-26June/Results/" #for search
 #dbpath="/Users/sj78/sourcecodes/RAG3D_Database/Results/" #for search
-dbpath="/Users/sj78/sourcecodes/RAG-3D-Feb2016/Results/" #for search
+#dbpath="/Users/sj78/sourcecodes/RAG-3D-Feb2016/Results/" #for search
+dbpath="/home/sj78/labwork/RAG3D/RAG-3D-Feb2016/Results/" #for search
 
 fnc_details="./details.txt" #this is for web tool. finds the fnc, experimental method and resolution data
 
