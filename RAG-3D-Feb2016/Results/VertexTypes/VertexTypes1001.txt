@@ -1,0 +1,6 @@
+5	:Hairpin
+3	:Hairpin
+7	:Hairpin
+1	:Dangling end, 2 strands, 1 helices
+9	:Internal Loop
+12	:Junction

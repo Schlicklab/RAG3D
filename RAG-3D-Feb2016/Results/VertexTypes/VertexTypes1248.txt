@@ -1,0 +1,2 @@
+3	:Hairpin
+1	:Dangling end, 2 strands, 1 helices

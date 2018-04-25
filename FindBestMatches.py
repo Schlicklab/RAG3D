@@ -16,6 +16,7 @@ from RAG_v2 import Structure
 
 #S.J. 02/04/2016 - changing the command line arguments to take three arguments
 if len(sys.argv) != 4:
+#if len(sys.argv) != 3:
    	print "Require 3 arguments: %s <QueryName> <Input Directory> <Output Directory>" %(sys.argv[0])
    	sys.exit(1)
     
@@ -68,12 +69,14 @@ f1="%s%s.bpseq"%(InputDir,QueryName)
 f2="%sLoops%s.txt"%(InputDir,QueryName)
 f3="%s%s_PDBGraph.pdb"%(InputDir,QueryName)
 f4="%sVertices%s.txt"%(InputDir,QueryName)
-f5="%s%s.pdb"%(InputDir,QueryName)
+#f5="%s%s.pdb"%(InputDir,QueryName) S.J. commented to not read the pdb file
+f5="File not needed"
 f6="./PdbToNb.txt"
 
 
 #dbpath="/ehome/cs4367/FullDataset/RAG-3D-26June/Results/" #for search
-dbpath="/Users/sj78/sourcecodes/RAG3D_Database/Results/" #for search
+#dbpath="/Users/sj78/sourcecodes/RAG3D_Database/Results/" #for search
+dbpath="/Users/sj78/sourcecodes/RAG-3D-Feb2016/Results/" #for search
 
 fnc_details="./details.txt" #this is for web tool. finds the fnc, experimental method and resolution data
 
