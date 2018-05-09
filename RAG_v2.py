@@ -249,7 +249,7 @@ class Structure:
 			IDlist.append([sub_ID,vertices])
 
 		self.GraphID=IDlist[0][0]
-		print "Name: %s, Graph ID: %s"%(self.name,self.GraphID)
+		print "Graph ID: %s"%(self.GraphID) # S.J. 05/09/2018
 		infofile.write("\nTotal number of vertices: %s\n"%self.GraphID.split('_')[0])
 		infofile.write("\nQuery has the topology ID: %s\n"%self.GraphID)
 

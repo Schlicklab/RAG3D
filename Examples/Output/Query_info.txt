@@ -1,0 +1,15 @@
+Danglingends:  (loop1) 1 - 1 , 57 - 57 , 
+Hairpin1:  (loop2) 8 - 13
+Hairpin2:  (loop3) 32 - 37
+Internalloop1:  (loop4) 26 - 30 , 39 - 42
+Junction1:  (loop6) 4 - 6 , 15 - 19 , 50 - 54 , 
+
+Total Hairpins: 2
+Total Internal loops: 2
+Total 3-way junctions: 1
+
+Total number of vertices: 5
+
+Query has the topology ID: 5_2
+
+Query can be divided into 2 subgraphs

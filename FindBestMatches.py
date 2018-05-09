@@ -4,41 +4,73 @@ from collections import OrderedDict
 
 from RAG_v2 import Structure
 
-#First C++ code must be runned. (It also removes pseudoknots.) 
-#Loops, Vertices, PDBGraph, BPSEQ files are needed.
+#First C++ RAGTOP code must be run (It also removes pseudoknots.) 
+#Loops, Vertices, VertexTypes, Graph, BPSEQ files are needed in the input directory.
 #Requires subgraphs.py script which is the modified version of RNA matrix code. This version also creates subgraph info. It needs %d-vertex-modified files (eigenvalue info)
 #PdbToNb.txt file is required for pdb number/pdb id conversion
 
-#The output files are written under directory named <RandomNumber>.
-#Under this directory 3 subfolders are created to store the results: Results, Subgraphs, and Junctions
+#Under the output directory 3 subfolders are created to store the results: Results, Subgraphs, and Junctions
 #This script also creates 2 subfolders: PML and MATCHES to store pymol script files & results of alignments, and the best matching results sorted wrt RMDSD values
 #Best matches are searched against the RAG-3D database. The path to the database should be specified.
 
-#S.J. 02/04/2016 - changing the command line arguments to take three arguments
-if len(sys.argv) != 4:
-#if len(sys.argv) != 3:
-   	print "Require 3 arguments: %s <QueryName> <Input Directory> <Output Directory>" %(sys.argv[0])
-   	sys.exit(1)
-    
-QueryName = sys.argv[1] #structure name without the extension
-#RandomNumber = sys.argv[2] #name output path
-InputDir = sys.argv[2]
-RandomNumber = sys.argv[3]
+#S.J. 05/09/2018 - clean up the file     
+
+#if len(sys.argv) != 4:
+#   	print "Require 4 arguments: %s <QueryName> <Input Directory> <Output Directory>" %(sys.argv[0])
+#   	sys.exit(1)
+
+QueryName = None
+InputDir = None
+OutputDir = None
+DatabaseDir = None
+GraphName = None
+
+# S.J. 05/09/2018 - parse command line arguments
+for i in range(1,len(sys.argv)):
+	if(sys.argv[i] == "-query"):
+		QueryName = sys.argv[i+1]
+	elif(sys.argv[i] == "-input"):
+		InputDir = sys.argv[i+1]
+	elif(sys.argv[i] == "-output"):
+		OutputDir = sys.argv[i+1]
+	elif(sys.argv[i] == "-database"):
+		DatabaseDir = sys.argv[i+1]
+	elif(sys.argv[i] == "-graph"):
+		GraphName = sys.argv[i+1]
+
+if(QueryName == None):
+	print "Query not specified"
+	sys.exit(1)
+if(InputDir == None):
+	print "Input directory not specified"
+	sys.exit(1)
+if(OutputDir == None):
+	print "Output directory not specified"
+	sys.exit(1)
+if(DatabaseDir == None):
+	print "Database directory not specified"
+	sys.exit(1)
+if(GraphName == None):
+	GraphName = ""
+
+print "Name: %s, Graph file: %s_%sGraph,"%(QueryName,QueryName,GraphName),
+
+#QueryName = sys.argv[1] #structure name without the extension
+#InputDir = sys.argv[2]
+#OutputDir = sys.argv[3]
+#DatabaseDir = sys.argv[4]
 
 try:
-	os.makedirs(RandomNumber)
+	os.makedirs(OutputDir)
 except OSError:
-	if os.path.exists(RandomNumber):
+	if os.path.exists(OutputDir):
 		pass
 	else:
 		raise
 
-#output_path="./%s/"%RandomNumber
-#PML_path="./%s/PML/"%RandomNumber
-#MATCH_path="./%s/MATCHES/"%RandomNumber
-output_path="%s"%RandomNumber
-PML_path="%sPML/"%RandomNumber
-MATCH_path="%sMATCHES/"%RandomNumber
+output_path="%s"%OutputDir
+PML_path="%sPML/"%OutputDir
+MATCH_path="%sMATCHES/"%OutputDir
 
 
 try:
@@ -57,32 +89,17 @@ except OSError:
 	else:
 		raise
 
-
-#f1="./BPSEQ/%s.bpseq"%QueryName
-#f2="./Loops-below-11v-numbers/Loops%s.txt"%QueryName
-#f3="./GRAPH/%s_PDBGraph.pdb"%QueryName
-#f4="./Vertices-below-11v-numbers/Vertices%s.txt"%QueryName
-#f5="./PDB/%s.pdb"%QueryName
-#f6="./PdbToNb.txt"
-
 f1="%s%s.bpseq"%(InputDir,QueryName)
-#f1="%s%s_nopk.bpseq"%(InputDir,QueryName)
 f2="%sLoops%s.txt"%(InputDir,QueryName)
-f3="%s%s_P2Graph.pdb"%(InputDir,QueryName)
-#f3="%s%s_PDBGraph.pdb"%(InputDir,QueryName)
+f3="%s%s_%sGraph.pdb"%(InputDir,QueryName,GraphName)
 f4="%sVertices%s.txt"%(InputDir,QueryName)
-#f5="%s%s.pdb"%(InputDir,QueryName) S.J. commented to not read the pdb file
 f5="File not needed"
-f6="./PdbToNb.txt"
+f6="%sPdbToNb.txt"%(DatabaseDir)
 f7="%sVertexTypes%s.txt"%(InputDir,QueryName) # S.J. 05/07/2017 for reading in vertex types
 
+dbpath="%sResults/"%(DatabaseDir) #for search
 
-#dbpath="/ehome/cs4367/FullDataset/RAG-3D-26June/Results/" #for search
-#dbpath="/Users/sj78/sourcecodes/RAG3D_Database/Results/" #for search
-#dbpath="/Users/sj78/sourcecodes/RAG-3D-Feb2016/Results/" #for search
-dbpath="/home/sj78/labwork/RAG3D/RAG-3D-Feb2016/Results/" #for search
-
-fnc_details="./details.txt" #this is for web tool. finds the fnc, experimental method and resolution data
+fnc_details="%sdetails.txt"%(DatabaseDir) #this is for web tool. finds the fnc, experimental method and resolution data
 
 R=Structure(QueryName,f1,f2,f3,f4,f5,f6,f7,output_path) # S.J. added f7
 R.create_dirs()

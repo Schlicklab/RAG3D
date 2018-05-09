@@ -1,8 +1,0 @@
-5	:Hairpin
-7	:Hairpin
-9	:Hairpin
-13	:Junction
-18	:Junction
-1	:Dangling end, 2 strands, 1 helices
-3	:Hairpin
-11	:Hairpin
