@@ -1,0 +1,17 @@
+NUMBER of Bases: 57
+Danglingends:  (loop1) 1 - 1 , 57 - 57 , 
+
+Total Hairpins: 2
+Hairpin1:  (loop2) 8 - 13
+Hairpin2:  (loop3) 32 - 37
+
+Total Internal loops: 2
+Internalloop1:  (loop4) 26 - 30 , 39 - 42
+Internalloop2:  (loop5) 21 - 22 , 46 - 48
+
+Total 3-way junctions: 1
+Junction1:  (loop6) 4 - 6 , 15 - 19 , 50 - 54 , 
+
+
+Total number of loops: 6
+done! 

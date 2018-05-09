@@ -1,7 +1,0 @@
-10	:Hairpin
-17	:Internal Loop
-1	:Dangling end, 5 strands, 4 helices
-12	:Hairpin
-6	:Hairpin
-8	:Hairpin
-14	:Internal Loop
