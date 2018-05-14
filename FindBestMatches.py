@@ -24,6 +24,7 @@ InputDir = None
 OutputDir = None
 DatabaseDir = None
 GraphName = None
+matchVertexType = False # S.J. 05/10/2018 - to match vertex types only if flag specified
 
 # S.J. 05/09/2018 - parse command line arguments
 for i in range(1,len(sys.argv)):
@@ -37,6 +38,8 @@ for i in range(1,len(sys.argv)):
 		DatabaseDir = sys.argv[i+1]
 	elif(sys.argv[i] == "-graph"):
 		GraphName = sys.argv[i+1]
+   	elif(sys.argv[i] == "-matchVertexType"):
+        	matchVertexType = True
 
 if(QueryName == None):
 	print "Query not specified"
@@ -95,7 +98,10 @@ f3="%s%s_%sGraph.pdb"%(InputDir,QueryName,GraphName)
 f4="%sVertices%s.txt"%(InputDir,QueryName)
 f5="File not needed"
 f6="%sPdbToNb.txt"%(DatabaseDir)
-f7="%sVertexTypes%s.txt"%(InputDir,QueryName) # S.J. 05/07/2017 for reading in vertex types
+if(matchVertexType): # S.J. 05/10/2018
+    f7="%sVertexTypes%s.txt"%(InputDir,QueryName) # S.J. 05/07/2017 for reading in vertex types
+else:
+    f7="File not needed"
 
 dbpath="%sResults/"%(DatabaseDir) #for search
 
@@ -106,4 +112,4 @@ R.create_dirs()
 R.readfiles()
 #R.print_subgraphs()
 R.calc_subgraphs()
-R.find_matches(dbpath,fnc_details)
+R.find_matches(dbpath,fnc_details,matchVertexType) # S.J. 05/10/2018 adding the last argument

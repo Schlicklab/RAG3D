@@ -128,14 +128,15 @@ class Structure:
 		file6.close()
 
         	# S.J. 05/07/2017 - added to read the vertType file
-        	try:
-            		file7=open(self.vertTypefile,"r")
-        	except IOError:
-            		print >> sys.stderr, "Verttype file could not be opened"
-            		return False
-            		#sys.exit()
-        	vertTypelines=file7.readlines()
-        	file7.close()
+            	if self.vertTypefile != "File not needed": # 05/10/2018
+                	try:
+            			file7=open(self.vertTypefile,"r")
+                	except IOError:
+            			print >> sys.stderr, "Verttype file could not be opened"
+            			return False
+            			#sys.exit()
+                   	vertTypelines=file7.readlines()
+                    	file7.close()
 
 		try:
 			infofile=open(self.outpath + "Query_info.txt","w") #for web page
@@ -231,15 +232,15 @@ class Structure:
         				self.vertinfo.append(map(int,[vertlines[i].split()[1],vertlines[i].split()[3]]))
 		#print "vertices info", self.vertinfo
 	
-    
-		for i in range(len(vertTypelines)):
-			x=vertTypelines[i].split(":")[0]
-			y=x.split()[0]
-			z=int(y)
-			st=vertTypelines[i].split(":")[1]
-			st1=st.split("\n")[0]
-			self.vertTypeinfo.append([z,st1])
-		#print "vert type info", self.vertTypeinfo[0]
+    		if self.vertTypefile != "File not needed": # 05/10/2018
+			for i in range(len(vertTypelines)):
+				x=vertTypelines[i].split(":")[0]
+				y=x.split()[0]
+				z=int(y)
+				st=vertTypelines[i].split(":")[1]
+				st1=st.split("\n")[0]
+				self.vertTypeinfo.append([z,st1])
+			#print "vert type info", self.vertTypeinfo[0]
     
 		IDlist=[]	
 		for i in range(len(sublines)):
@@ -516,7 +517,7 @@ class Structure:
 		
 		return flag 
 
-	def find_matches(self,dbpath,inputfile):
+	def find_matches(self,dbpath,inputfile,matchVertexType):
 		time1=time.time()
 		fncfile=open(inputfile,"r")
 		fnclines=fncfile.readlines()
@@ -578,9 +579,10 @@ class Structure:
 				#for i in range(len(best_results)):
 				order=0;
 				for i in range(len(sorted_results)):
-					similar=self.isSimilar(key,dbpath,sorted_results[i]) # S.J. 05/09/2017 for checking if the fragment 
-					if similar==0:
-						continue
+					if(matchVertexType): # S.J. 05/10/2018 - call this function only if we have to match vertex types
+						similar=self.isSimilar(key,dbpath,sorted_results[i]) # S.J. 05/09/2017 for checking if the fragment 
+						if similar==0:
+							continue
 					#print "Best Results Before=%s"%(best_results[i][2])
 					#os.system("cp %s/%s-3D-frgt.pdb %s/MATCHES/"%(mypath,best_results[i][3],self.outpath))
 					#os.system("cp %s/%s-AA-frgt.pdb %s/MATCHES/"%(aapath,best_results[i][3],self.outpath))
