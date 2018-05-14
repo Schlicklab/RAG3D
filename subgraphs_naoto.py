@@ -127,13 +127,13 @@ class Junction:
 
 
 def merge(mylist):
-	print "length of mylist ",len(mylist)
+	#print "length of mylist ",len(mylist)
 	myset=[set(i1) for i1 in mylist]
 	returnlist=myset
 	#print "length of myset ",len(myset)
 	for i in range(len(myset)):
-		if i%100==0:
-			print i, len(returnlist)
+		#if i%100==0:
+		#	print i, len(returnlist)
 		first=myset[i]
 		rest=myset[i:]
 		for second in rest:
@@ -403,6 +403,41 @@ def getBPSEQInfo(arg):
 		RNA.addBase(oneBase)
 		line = f.readline()
 	f.close()	
+	return RNA
+
+##Translate information from and adjacency matrix into an RNA class - S.J. 05/14/2018
+def getAdjMatInfo(arg):
+	f = open(arg)
+	RNA = RNAInfo()
+	lines = f.readlines()
+	for i in range(0,len(lines)):
+		line = lines[i]
+		tempArray = []
+                degree = 0
+                for x in line.split():
+                        degree += float(x)
+                        tempArray.append(float(x))
+                RNA.adjMatrix.append(tempArray)
+                tempArray = []
+                for j in range (1,i+1):
+                        tempArray.append(0.0000)
+                tempArray.append(degree)
+                for j in range (i+1,len(lines)):
+                        tempArray.append(0.0000)
+                RNA.degMatrix.append(tempArray)
+		if i == 0:
+			node = StartingNode()
+			RNA.Nodes.append(node)
+		elif degree == 1:
+			node = Hairpin()
+			RNA.Nodes.append(node)	
+		elif degree == 2:
+			node = InternalLoop()
+			RNA.Nodes.append(node)	
+		elif degree >= 3:
+			node = Junction()
+			RNA.Nodes.append(node)	
+	f.close()
 	return RNA
 
 #Determine whether or not there are pseudoknots in the structure
@@ -712,13 +747,12 @@ def connectNodes(RNA):
 					RNA.degMatrix[i-1][i-1] +=1
 					RNA.degMatrix[j-1][j-1] +=1
 
-def calcEigen(RNA,arg):
+#def calcEigen(RNA,arg):
+def calcEigen(RNA):
 	if len(RNA.Nodes)-1==1:
 		print "1_1" 
 	elif len(RNA.Nodes)>11:
 		print "This structure contains %d vertices" %(len(RNA.Nodes)-1)
-
-		
 	else:
 		#print "length of nodes ",len(RNA.Nodes)-1
 		loadEigenvalues(len(RNA.Nodes))
@@ -906,11 +940,25 @@ def label(RNA):
 
 def main():	
 	start=time.time()		
-	for arg in sys.argv[1:]:
-		if arg[-2:] == "ct":
-			RNA = getCTInfo(arg)
+	#for arg in sys.argv[1:]:
+	for i in range(1,len(sys.argv)): # S.J. 05/14/2018 - changed the for loop to range over indices
+
+		# S.J. 05/14/2018 - adding to read in adjacency matrices
+		if sys.argv[i] == "-adj_mat":
+			RNA = getAdjMatInfo(sys.argv[i+1])
+			calcEigen(RNA)
+			RNA.findsubgraphs()
+                        calcEigen_subgraphs(RNA,RNA.subgraphs)
+			break
+		
+		#if arg[-2:] == "ct":
+		#	RNA = getCTInfo(arg)
+		#else:
+		#	RNA = getBPSEQInfo(arg)
+		if sys.argv[i][-2:] == "ct":
+			RNA = getCTInfo(sys.argv[i])
 		else:
-			RNA = getBPSEQInfo(arg)
+			RNA = getBPSEQInfo(sys.argv[i])
 		if pseudoKnots(RNA):
 			print "pseudoknot!"
 		else:
@@ -929,7 +977,8 @@ def main():
 			connectNodes(RNA)
 			#RNA.printAdj()
 			#RNA.printDeg()
-			calcEigen(RNA,arg)
+			#calcEigen(RNA,arg)
+			calcEigen(RNA) # S.J. removing the last argument as that is not needed
 			#For structures with more than 10 vertices, it calculates all its subgraphs up through 10 vertices
 			#if len(RNA.Nodes)-1==1 or len(RNA.Nodes)>11:
 			#	break
