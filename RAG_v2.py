@@ -528,6 +528,7 @@ class Structure:
 			if os.path.isdir(dbpath + "%s/"%key.split('-')[0]):
 				mypath=dbpath + "%s/GRAPH-FRGT/"%key.split('-')[0]
 				aapath=dbpath + "%s/AllAtom/"%key.split('-')[0]
+               			bpseqpath=dbpath + "%s/BPSEQs/"%key.split('-')[0] # S.J. - 06/12/2018 - to copy cpseq files for fragments as well
 				fragments= os.listdir(mypath)	
 				allresults=[]
 				pml=open("%s/PML/%s.pml"%(self.outpath,key),"w")
@@ -591,6 +592,7 @@ class Structure:
 						if sorted_results[i][2]==columns[0]:
 							os.system("cp %s/%s-3D-frgt.pdb %s/MATCHES/"%(mypath,sorted_results[i][3],self.outpath))
 							os.system("cp %s/%s-AA-frgt.pdb %s/MATCHES/"%(aapath,sorted_results[i][3],self.outpath))
+                            				os.system("cp %s/%s-AA-frgt.bpseq %s/MATCHES/"%(bpseqpath,sorted_results[i][3],self.outpath)) # S.J. - 06/12/2018 - to copy cpseq files for fragments as well
 							frag=sorted_results[i][3]
 							top=sorted_results[i][1]
 							order+=1
