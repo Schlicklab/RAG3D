@@ -255,6 +255,42 @@ def getBPSEQInfo(arg):
 	f.close()	
 	return RNA
 
+##Translate information from and adjacency matrix into an RNA class - S.J. 07/05/2018
+def getAdjMatInfo(arg):
+        f = open(arg)
+        RNA = RNAInfo()
+        lines = f.readlines()
+        for i in range(0,len(lines)):
+                line = lines[i]
+                tempArray = []
+                degree = 0
+                for x in line.split():
+                        degree += float(x)
+                        tempArray.append(float(x))
+                RNA.adjMatrix.append(tempArray)
+                tempArray = []
+                for j in range (1,i+1):
+                        tempArray.append(0.0000)
+                tempArray.append(degree)
+                for j in range (i+1,len(lines)):
+                        tempArray.append(0.0000)
+                RNA.degMatrix.append(tempArray)
+                if i == 0:
+                        node = StartingNode()
+                        RNA.Nodes.append(node)
+                elif degree == 1:
+                        node = Hairpin()
+                        RNA.Nodes.append(node)
+                elif degree == 2:
+                        node = InternalLoop()
+                        RNA.Nodes.append(node)
+                elif degree >= 3:
+                        node = Junction()
+                        RNA.Nodes.append(node)
+        f.close()
+        return RNA
+
+
 #Determine whether or not there are pseudoknots in the structure
 def pseudoKnots(RNA):
 	for i in range(1,len(RNA.Bases)-1):
@@ -554,7 +590,8 @@ def connectNodes(RNA):
 					RNA.degMatrix[i-1][i-1] +=1
 					RNA.degMatrix[j-1][j-1] +=1
 
-def calcEigen(RNA,arg):
+#def calcEigen(RNA,arg):
+def calcEigen(RNA): # S.J. 07/05/2018 - removing the last argument as that is not needed
 	if len(RNA.Nodes)-1==1:
 		print "1_1" 
 	#elif len(RNA.Nodes)>11:
@@ -681,14 +718,20 @@ def label(RNA):
 			print "No matching adjacency found."
 
 def main():			
-	for arg in sys.argv[1:]:
-		if arg[-2:] == "ct":
-			RNA = getCTInfo(arg)
-		else:
-			RNA = getBPSEQInfo(arg)
-		if pseudoKnots(RNA):
-			print "pseudoknot!"
-		else:
+	#for arg in sys.argv[1:]: # S.J. 07/05/2018 - eliminating the for loop, so this will run on one file at a time
+        # S.J. 07/04/2018 - adding to read in adjacency matrices
+	adjMatTrue = False
+        if sys.argv[1] == "-adj_mat":
+                adjMatTrue = True
+                RNA = getAdjMatInfo(sys.argv[2]) 
+	elif sys.argv[1][-2:] == "ct":
+		RNA = getCTInfo(sys.argv[1])
+	else:
+		RNA = getBPSEQInfo(sys.argv[1])
+	if pseudoKnots(RNA):
+		print "pseudoknot!"
+	else:
+		if not adjMatTrue:
 			countHelices(RNA) 
 			changeHelices(RNA)
 			#Tree graph methods
@@ -702,15 +745,19 @@ def main():
 			RNA.sortNodes()
 			RNA.makeMatrices()
 			connectNodes(RNA)
-			RNA.printAdj()
-			RNA.printDeg()
-			calcEigen(RNA,arg)
+
+		RNA.printAdj()
+		RNA.printDeg()
+		calcEigen(RNA) # S.J. removing the last argument as that is not need 07/05/2018
+		
+		if not adjMatTrue:
 			labelBases(RNA) #must come after sort!1
-			#if len(RNA.Nodes)-1==1 or len(RNA.Nodes)>11:
-			if len(RNA.Nodes)-1==1 or len(RNA.Nodes)>14: # S.J. 05/12/2017 - to take into account graphs with 11-13 vertices as well
-				pass
-#			else:
-#label(RNA)
+		#if len(RNA.Nodes)-1==1 or len(RNA.Nodes)>11:
+		if len(RNA.Nodes)-1==1 or len(RNA.Nodes)>14: # S.J. 05/12/2017 - to take into account graphs with 11-13 vertices as well
+			print "No matching graph exists because vertex number is either 1 or greater than 13." # S.J. 07/05/2018
+			pass
+		#else:
+			#label(RNA)
 
 	
 
