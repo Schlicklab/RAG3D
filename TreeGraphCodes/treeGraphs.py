@@ -255,7 +255,7 @@ def getBPSEQInfo(arg):
 	f.close()	
 	return RNA
 
-##Translate information from and adjacency matrix into an RNA class - S.J. 07/05/2018
+##Translate information from a adjacency matrix into an RNA class - S.J. 07/05/2018
 def getAdjMatInfo(arg):
         f = open(arg)
         RNA = RNAInfo()
@@ -289,6 +289,40 @@ def getAdjMatInfo(arg):
                         RNA.Nodes.append(node)
         f.close()
         return RNA
+
+## Translate information from a dot bracket notation into an RNA class - S.J. 07/25/2018
+# first line of a dot bracket notation should contain the sequence, and the second line should contain the dot bracket notation
+def getDotBracketInfo(arg):
+    f = open(arg)
+    RNA = RNAInfo()
+    
+    line = f.readline().strip()
+    sequence = [c for c in line] # stores the base identity of the residue
+    line = f.readline().strip()
+    dotb = [c for c in line]
+    f.close()
+    
+    stack_bp=[]
+    base_pair=[] # to store the residue number of base pair
+    
+    for i in range(0,len(sequence)):
+        base_pair.append(0) # initializing base pairs with all 0's
+    
+    for i in range(0,len(sequence)): # looping over number of bases based on sequence, as the dot bracket line can contain extra things (from Vienna format)
+        if dotb[i] == "(": # opening bracket, add the res number to stack
+            stack_bp.append(i)
+        elif dotb[i] == ")": # closing bracket, then pop the res number from the stack, and assign base_pairs to both residues
+            i_bp = stack_bp.pop()
+            base_pair[i]=i_bp+1 #as numbers start from 1
+            base_pair[i_bp]=i+1
+
+    #add bases to RNA
+    for i in range(0,len(sequence)):
+        oneBase = Base()
+        oneBase.initialize(i+1,sequence[i],base_pair[i])
+        RNA.addBase(oneBase)
+
+    return RNA
 
 
 #Determine whether or not there are pseudoknots in the structure
@@ -723,7 +757,9 @@ def main():
 	adjMatTrue = False
         if sys.argv[1] == "-adj_mat":
                 adjMatTrue = True
-                RNA = getAdjMatInfo(sys.argv[2]) 
+                RNA = getAdjMatInfo(sys.argv[2])
+	elif sys.argv[1] == "-dotb": # S.J. 07/25/2018 - flag to read RNA info in dotbracket notation
+		RNA = getDotBracketInfo(sys.argv[2]) 
 	elif sys.argv[1][-2:] == "ct":
 		RNA = getCTInfo(sys.argv[1])
 	else:
