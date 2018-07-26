@@ -294,21 +294,29 @@ def getAdjMatInfo(arg):
 # first line of a dot bracket notation should contain the sequence, and the second line should contain the dot bracket notation
 def getDotBracketInfo(arg):
     f = open(arg)
-    RNA = RNAInfo()
-    
-    line = f.readline().strip()
-    sequence = [c for c in line] # stores the base identity of the residue
-    line = f.readline().strip()
-    dotb = [c for c in line]
+    lines=f.readlines()
     f.close()
+    
+    found_seq = False
+    found_dotb = False
+    
+    for line in lines:
+        line = line.strip().split()[0]
+        if (not found_seq) and (line[0] == "A" or line[0] == "G" or line[0] == "C" or line[0] == "U"): # this is the sequence line
+            sequence = [c for c in line] # stores the base identity of the residue
+            found_seq = True
+        elif (not found_dotb) and (line[0] == "." or line[0] == "(" or line[0] == ")"): # this is the dot bracket line
+            dotb = [c for c in line]
+            found_dotb = True
     
     stack_bp=[]
     base_pair=[] # to store the residue number of base pair
+    RNA = RNAInfo()
     
-    for i in range(0,len(sequence)):
+    for i in range(0,len(dotb)):
         base_pair.append(0) # initializing base pairs with all 0's
     
-    for i in range(0,len(sequence)): # looping over number of bases based on sequence, as the dot bracket line can contain extra things (from Vienna format)
+    for i in range(0,len(dotb)):
         if dotb[i] == "(": # opening bracket, add the res number to stack
             stack_bp.append(i)
         elif dotb[i] == ")": # closing bracket, then pop the res number from the stack, and assign base_pairs to both residues
@@ -317,9 +325,12 @@ def getDotBracketInfo(arg):
             base_pair[i_bp]=i+1
 
     #add bases to RNA
-    for i in range(0,len(sequence)):
+    for i in range(0,len(dotb)):
         oneBase = Base()
-        oneBase.initialize(i+1,sequence[i],base_pair[i])
+        if found_seq:
+            oneBase.initialize(i+1,sequence[i],base_pair[i])
+        else:
+            oneBase.initialize(i+1,"N",base_pair[i])
         RNA.addBase(oneBase)
 
     return RNA
@@ -792,9 +803,8 @@ def main():
 		if len(RNA.Nodes)-1==1 or len(RNA.Nodes)>14: # S.J. 05/12/2017 - to take into account graphs with 11-13 vertices as well
 			print "No matching graph exists because vertex number is either 1 or greater than 13." # S.J. 07/05/2018
 			pass
-		#else:
-			#label(RNA)
-
+        #else:
+            #label(RNA)
 	
 
 #check if there are only zeroes between nt (start) and nt (end)
