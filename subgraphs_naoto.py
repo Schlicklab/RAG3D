@@ -14,7 +14,8 @@ keys = []
 values = []
 graphID = []
 def loadEigenvalues(num_vertices):
-	if num_vertices <=2 or num_vertices> 11:
+	#if num_vertices <=2 or num_vertices> 11:
+	if num_vertices <=2 or num_vertices> 14: # S.J. 05/06/2019, updating the number
 		print "number of vertices %d is not supported" %(num_vertices - 1)
 		pass
 	else:
@@ -138,7 +139,8 @@ def merge(mylist):
 		rest=myset[i:]
 		for second in rest:
 			if len(first.intersection(second))!=0:
-				if ((first|second) not in returnlist) and (len(first|second)<=10):
+				#if ((first|second) not in returnlist) and (len(first|second)<=10):
+				if ((first|second) not in returnlist) and (len(first|second)<=13): # S.J. - 05/06/2019 - updating the number
 					returnlist.append(first|second)
 				else:
 					if first not in returnlist:
@@ -338,7 +340,8 @@ class RNAInfo:
 		#remove subgraphs with more than 10 vertices. This is necessary to gain efficiency for large RNAs        
 		temp=[]
 		for item in allvert:
-			if len(item)<= 11:
+			#if len(item)<= 11:
+			if len(item)<= 14: # S.J. 05/06/2019 - updating the number
  				temp.append(item)
 		allvert=temp
 
@@ -357,7 +360,8 @@ class RNAInfo:
 		#remove subgraphs with only one vertex
 		temp=[]
 		for item in allvert:
-			if len(item)>1 and len(item)<11:
+			#if len(item)>1 and len(item)<11:
+			if len(item)>1 and len(item)<14: # S.J. 05/06/2019 - updating the number
 				temp.append(item)
         	self.subgraphs=temp
 
@@ -751,7 +755,8 @@ def connectNodes(RNA):
 def calcEigen(RNA):
 	if len(RNA.Nodes)-1==1:
 		print "1_1" 
-	elif len(RNA.Nodes)>11:
+	#elif len(RNA.Nodes)>11:
+	elif len(RNA.Nodes)>14: # S.J. 05/06/2019 - updating the vertex number
 		print "This structure contains %d vertices" %(len(RNA.Nodes)-1)
 	else:
 		#print "length of nodes ",len(RNA.Nodes)-1
