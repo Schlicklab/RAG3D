@@ -5,11 +5,14 @@ from collections import OrderedDict
 from RAG_v2 import Structure
 
 #It reads the information previosly created with the C++ code (Loops,Vertices,Graph)
-#Requires subgraphs.py script which is the modified version of RNA matrix code. This version also creates subgraph info. It needs %d-vertex-modified files (eigenvalue info)
-#PdbToNb.txt file is required for pdb number/pdb id conversion
+#Requires subgraphs_naoto.py script which is the modified version of RNA matrix code. This version also creates subgraph info. It needs %d-vertex-modified files (eigenvalue info)
+#PdbToNb.txt file is required for pdb number/pdb id conversion or just a list of pdb id/pdb id if not converted to numbers
 #Under output_path 3 directories are created: Results, Subgraphs, Junctions
+# S.J. - 05/07/2019 - please update the paths when using this file
+# sys.argv[1] is a list of PDB files to be processed (without extension)
 
-output_path="../FullDataset/RAG-3D/"
+output_path="/ts_home/sj78/labwork/RAG-3D-Database/"
+
 try:
 	os.makedirs(output_path)
 except OSError:
@@ -17,36 +20,23 @@ except OSError:
 		pass
 	else:
 		raise
+list=open(sys.argv[1])
+files = list.readlines()
+list.close()
+for pdb in files:
+	pdb = pdb.strip()
+	print pdb
+    
+    	f1="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_noPK/%s.bpseq"%pdb
+    	f2="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_noPK/LoopsVertices/Loops/Loops%s.txt"%pdb
+    	f3="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_noPK/LoopsVertices/Graphs/%s_PDBGraph.pdb"%pdb
+    	f4="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_noPK/LoopsVertices/Vertices/Vertices%s.txt"%pdb
+    	f5="/ts_home/sj78/labwork/AllRNADataset_August2018/RNAPDBs/%s.pdb"%pdb
+    	f6="/ts_home/sj78/labwork/RAG-3D-Database/PdbToNb.txt"
+	f7="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_noPK/LoopsVertices/VertexTypes/VertexTypes%s.txt"%pdb
 
-exception=[366,2299,1975,2214,2215,2216,2217] #not working pdb numbers
-
-for i in range(1,2327): #for each pdb number
-#for i in range(936,937): #for each pdb number
-	if i in exception:
-		continue
-
-	pdb=str(i)
-	f1="../FullDataset/BPSEQ/%s.bpseq"%pdb
-	f2="../FullDataset/Coutput/Loops%s.txt"%pdb
-	f3="../FullDataset/GRAPH/%s_PDBGraph.pdb"%pdb
-	f4="../FullDataset/Coutput/Vertices%s.txt"%pdb
-	f5="../FullDataset/PDB/%s.pdb"%pdb
-	f6="./PdbToNb.txt"
-
-#large=os.listdir("../data-03-29-14/bpseq-above-10v/")
-#for i in large: #for each pdb number
-#
-#	pdb=i.split('.')[0]
-#	print pdb
-#	f1="../data-03-29-14/bpseq-above-10v/%s.bpseq"%pdb
-#	f2="../data-03-29-14/Loops-above-10v/Loops%s.txt"%pdb
-#	f3="../data-03-29-14/PDBGraph-above-10v/%s_PDBGraph.pdb"%pdb
-#	f4="../data-03-29-14/Vertices-above-10v/Vertices%s.txt"%pdb
-#	f5="../data-03-29-14/pdb-above-10v/%s.pdb"%pdb
-#	f6="./PdbToNb.txt"
-
-	R=Structure(pdb,f1,f2,f3,f4,f5,f6,output_path)
-	R=Structure(pdb,f1,f2,f3,f4,f5,f6,output_path)
+	#S.J.R=Structure(pdb,f1,f2,f3,f4,f5,f6,output_path)
+	R=Structure(pdb,f1,f2,f3,f4,f5,f6,f7,output_path)
 	R.create_dirs()
 	if R.readfiles()==False:
 		continue

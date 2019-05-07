@@ -109,14 +109,16 @@ class Structure:
 		vertlines=file4.readlines()
 		file4.close()
 
-		#try: S.J. commented out to not read the pdb file
-		#	file5=open(self.pdbfile,"r")
-		#except IOError:
-		#	print >> sys.stderr, "Pdb file could not be opened"
-		#	#sys.exit()
-		#	return False
-		#pdblines=file5.readlines()
-		#file5.close()
+		# S.J. 05/06/2019 - modified to read the pdb file only when creating the database
+		if self.pdbfile != "File not needed": # 05/06/2019
+			try: 
+				file5=open(self.pdbfile,"r")
+			except IOError:
+				print >> sys.stderr, "Pdb file could not be opened"
+				#sys.exit()
+				return False
+			pdblines=file5.readlines()
+			file5.close()
 
 		try:
 			file6=open(self.pdbnbfile,"r")
@@ -217,11 +219,25 @@ class Structure:
 		except NameError:
 			junc_exists=False
 
-		#S.J. commented out to not use the pdb file
-		#for i in range(len(pdblines)):
-		#	if 'ATOM' in pdblines[i]:
-		#		self.pdbinfo.append(pdblines[i])
-		#print self.pdbinfo
+		#S.J. modified to read in ATOM and HETATM entries only for creating the database - 05/06/2019
+        	if self.pdbfile != "File not needed":
+			prevRes = "" # S.J. making it a 2D array/list, storing all lines belonging to a residue as one element
+			curRes = ""
+			temp_res=[]
+            		for i in range(len(pdblines)):
+                		if 'ATOM' in pdblines[i] or 'HETATM' in pdblines[i]:
+					curRes = pdblines[i][22:26]
+					if curRes == prevRes: # if these atoms belong to the same residue
+						temp_res.append(pdblines[i])
+					else:
+						#print temp_res
+						self.pdbinfo.append(temp_res) # store prev residue info in the pdbinfo array and initialize a new residue
+						temp_res = []
+						temp_res.append(pdblines[i])
+						prevRes = curRes
+            		self.pdbinfo.append(temp_res) # storing the last residue info
+			#print len(self.pdbinfo)
+        
 		for i in range(len(vertlines)):
            		if vertlines[i].startswith("Vertices:"):
 				check=0
@@ -377,18 +393,20 @@ class Structure:
 		except IOError:
 			print >> sys.stderr, "AA-frgt file could not be opened"
 			sys.exit()
-
 		
 		#diff=int(self.pdbinfo[0][22:26])-1 #read the number of first atom. for in case if it does not start with 1! the difference btw atom no in pdb and bpseq
-		for line in self.pdbinfo:
+		# S.J. 05/06/2019 - modifying to work even if PDB file does not have residue numbers starting from 1 or residue numbers in sequence
+		for residue in range(1,len(self.pdbinfo)+1):
+			#print line
 			#atom=int(line[22:26])
-			atom=1
+			#atom=1
 			for i in range(len(values)):
 				#myrange=(values[i][0]+diff,values[i][1]+diff) #bpseq starts with 1. if pdb atom no starts with >1, add the difference!
 				myrange=(values[i][0],values[i][1])
-				if atom in range(*myrange): #star is used to unpack the tuple (x,y)
-					frgt.write("%s"%line)
-			atom+=1
+				if residue in range(*myrange): #star is used to unpack the tuple (x,y)
+					for line in self.pdbinfo[residue]: #print all atomlines from the residue
+						frgt.write("%s"%line)
+			#atom+=1
 		frgt.write("END\n")
 		frgt.close()
 
