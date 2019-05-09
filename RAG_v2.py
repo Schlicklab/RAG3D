@@ -21,8 +21,9 @@ class Structure:
 		self.Subgraphs_dir=self.outpath + "Subgraphs/" #includes results of subgraphs.py i.e., subgraph IDs and corresponding vertices info.
 		self.Junctions_dir=self.outpath + "Junctions/" #includes 3way and 4way junction info.
 
-		self.Pdb_Nb={} #pdb id to pdb number conversion 
-		self.loopinfo=[] 
+		self.Pdb_Nb={} #pdb id to pdb number conversion
+		self.bpseqinfo=[] # S.J. 05/07/2019
+		self.loopinfo=[]
 		self.graphinfo=[]
 		self.pdbinfo=[]
 		self.vertinfo=[]
@@ -35,7 +36,7 @@ class Structure:
 
 	def create_dirs(self):
 		##Results contains subfolders named after graph ids (2_1, 3_1, etc.)
-		##Under each subfolder there are GRAPH-FRGT and AllAtom folders containing corresponding pdb files
+		##Under each subfolder there are GRAPH-FRGT, AllAtom, BPSEQ folders containing corresponding pdb files
 		try:
 			os.makedirs(self.Results_dir)
 		except OSError:
@@ -65,7 +66,22 @@ class Structure:
 
 	def readfiles(self):
 		
-		#subgraph.py is the modified version of the RNA matrix code
+		# S.J. - 05/07/2019 - adding to read in the bpseq file
+		try:
+			file8=open(self.bpseqfile,"r")
+		except IOError:
+			print >> sys.stderr, "BPSEQ file could not be opened"
+			return False
+		line = file8.readline()
+		bpseqlines = []
+        	while(line.split()[0] != '1'):
+                	line = file8.readline()
+		while(len(line.split()) > 1):
+			bpseqlines.append(line)
+			line=file8.readline()
+		file8.close()
+
+		#subgraph_naoto.py is the modified version of the RNA matrix code
 		sfile=self.Subgraphs_dir + self.name + "-subgraphs"
 		os.system('/usr/bin/python2.7 subgraphs_naoto.py  %s | grep "Subgraph" | sort -nrk 3,3 > %s'%(self.bpseqfile,sfile))
 
@@ -151,6 +167,19 @@ class Structure:
 			self.Pdb_Nb.update({record[1]:record[0]}) #PdbNumber: PdbID_ChainID
 		#print self.Pdb_Nb
 
+		# S.J. 05/07/2019 - for reading bpseqfile info
+		temp_base=[]
+		temp_base.append("")
+		temp_base.append(0)
+		self.bpseqinfo.append(temp_base)
+		for i in range(len(bpseqlines)):
+			columns = bpseqlines[i].split()
+			temp_base = []
+			temp_base.append(columns[1])
+			temp_base.append(int(columns[2]))
+			self.bpseqinfo.append(temp_base)
+		#print self.bpseqinfo
+
 		AllNgraph=[]
 		for i in range(len(graphlines)):
 			self.graphinfo.append(graphlines[i])
@@ -226,7 +255,7 @@ class Structure:
 			temp_res=[]
             		for i in range(len(pdblines)):
                 		if 'ATOM' in pdblines[i] or 'HETATM' in pdblines[i]:
-					curRes = pdblines[i][22:26]
+					curRes = pdblines[i][21:27]
 					if curRes == prevRes: # if these atoms belong to the same residue
 						temp_res.append(pdblines[i])
 					else:
@@ -236,7 +265,7 @@ class Structure:
 						temp_res.append(pdblines[i])
 						prevRes = curRes
             		self.pdbinfo.append(temp_res) # storing the last residue info
-			#print len(self.pdbinfo)
+			#for i in range(len(self.pdbinfo)):
         
 		for i in range(len(vertlines)):
            		if vertlines[i].startswith("Vertices:"):
@@ -369,14 +398,19 @@ class Structure:
 							if v[0] not in graph:
 								graph.append(v[0])
 				forGraph=sorted(graph)
-				path1=self.Results_dir + key.split('-')[0] + "/AllAtom/"
-				name1="%s-%s-AA-frgt.pdb"%(self.name, key)
-				self.write_AA(path1,name1,forAAextract)
+				if self.pdbfile != "File not needed": # S.J. - 05/08/2019 - only write the atomic fragment when pdb file is read in
+					path1=self.Results_dir + key.split('-')[0] + "/AllAtom/"
+					name1="%s-%s-AA-frgt.pdb"%(self.name, key)
+					self.write_AA(path1,name1,forAAextract)
 
 				path2=self.Results_dir + key.split('-')[0] + "/GRAPH-FRGT/"
 				name2="%s-%s-3D-frgt.pdb"%(self.name, key)
 				self.write_graph(path2,name2,forGraph)
-			
+
+				# S.J. - 05/07/2019 - to write bpseq files corresponding to atomic fragments
+				path3=self.Results_dir + key.split('-')[0] + "/BPSEQs/"
+				name3="%s-%s-AA-frgt.bpseq"%(self.name,key)
+				self.write_bpseq(path3,name3,forAAextract)
 
 	def write_AA(self,AA_path,filename,values):
 		
@@ -393,10 +427,10 @@ class Structure:
 		except IOError:
 			print >> sys.stderr, "AA-frgt file could not be opened"
 			sys.exit()
-		
+
 		#diff=int(self.pdbinfo[0][22:26])-1 #read the number of first atom. for in case if it does not start with 1! the difference btw atom no in pdb and bpseq
 		# S.J. 05/06/2019 - modifying to work even if PDB file does not have residue numbers starting from 1 or residue numbers in sequence
-		for residue in range(1,len(self.pdbinfo)+1):
+		for residue in range(1,len(self.pdbinfo)):
 			#print line
 			#atom=int(line[22:26])
 			#atom=1
@@ -477,6 +511,41 @@ class Structure:
 			frgt3d.write("%-6s%5d%5d\n"%("CONECT",int(connections[i][0]),int(connections[i][1])))
 				
 		frgt3d.close()
+
+	# S.J. 05/07/2019 - to write bpseq files for atomic fragments	
+	def write_bpseq(self,BPSEQ_path,filename,values):
+		try:
+                        os.makedirs(BPSEQ_path)
+                except OSError:
+                        if os.path.exists(BPSEQ_path):
+                                pass
+                        else:
+                                raise
+                try:
+                        frgt_bp=open(BPSEQ_path + filename,"w")
+                except IOError:
+                        print >> sys.stderr, "AA-frgt bpseq file could not be opened"
+                        sys.exit()
+
+		res_map = dict()
+		numRes = 1
+		for i in range(len(values)):
+                	myrange=(values[i][0],values[i][1])
+                        for residue in range(*myrange): # to map residue number of full file to this fragment
+				res_map[residue]=numRes
+				numRes+=1
+		
+		for res in sorted (res_map.keys()):
+			
+			ip = res_map[res] # base number for this fragment
+			base_type = self.bpseqinfo[res][0] # base type
+			if self.bpseqinfo[res][1] != 0: # this is base paired
+				ip_bp = res_map[self.bpseqinfo[res][1]]
+			else:
+				ip_bp = 0
+			frgt_bp.write("%d %s %d\n"%(ip,base_type,ip_bp))
+
+		frgt_bp.close()
 	
 	# S.J. 05/09/2017 function added
 	def isSimilar(self,key,dbpath,fragment):
