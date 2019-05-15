@@ -83,7 +83,22 @@ class Structure:
 
 		#subgraph_naoto.py is the modified version of the RNA matrix code
 		sfile=self.Subgraphs_dir + self.name + "-subgraphs"
-		os.system('/usr/bin/python2.7 subgraphs_naoto.py  %s | grep "Subgraph" | sort -nrk 3,3 > %s'%(self.bpseqfile,sfile))
+		temp_file="Temp_Subgraph_files/" + self.name + "-subgraphs-temp"
+		#temp_file="temp.txt"
+		#os.system('/usr/bin/python2.7 subgraphs_naoto.py  %s > %s'%(self.bpseqfile,"temp.txt")) # S.J. 05/09/2019 - changes to read the number of vertices for structures with more than 13 vertices correctly as well
+		os.system('grep "Subgraph" %s | sort -nrk 3,3 > %s'%(temp_file,sfile))
+		temp_f=open(temp_file,"r")
+		temp_line=temp_f.readline()
+		temp_columns=temp_line.strip().split()
+		if(len(temp_columns) != 0):
+        		self.GraphID = temp_columns[3]
+		else:
+        		temp_line=temp_f.readline()
+        		temp_columns=temp_line.strip().split()
+        		self.GraphID = temp_columns[2]
+		temp_f.close()
+		#os.system('rm -f temp.txt')
+		#os.system('/usr/bin/python2.7 subgraphs_naoto.py  %s | grep "Subgraph" | sort -nrk 3,3 > %s'%(self.bpseqfile,sfile))
 
 		try:
 			file1=open(sfile,"r")
@@ -294,7 +309,7 @@ class Structure:
 			vertices=map(int,columns[3:])
 			IDlist.append([sub_ID,vertices])
 
-		self.GraphID=IDlist[0][0]
+		#self.GraphID=IDlist[0][0] - S.J. 05/09/2019 - assigned above
 		print "Graph ID: %s"%(self.GraphID) # S.J. 05/09/2018
 		infofile.write("\nTotal number of vertices: %s\n"%self.GraphID.split('_')[0])
 		infofile.write("\nQuery has the topology ID: %s\n"%self.GraphID)
@@ -398,6 +413,7 @@ class Structure:
 							if v[0] not in graph:
 								graph.append(v[0])
 				forGraph=sorted(graph)
+				#print forAAextract
 				if self.pdbfile != "File not needed": # S.J. - 05/08/2019 - only write the atomic fragment when pdb file is read in
 					path1=self.Results_dir + key.split('-')[0] + "/AllAtom/"
 					name1="%s-%s-AA-frgt.pdb"%(self.name, key)
@@ -531,14 +547,17 @@ class Structure:
 		numRes = 1
 		for i in range(len(values)):
                 	myrange=(values[i][0],values[i][1])
+			#print myrange
                         for residue in range(*myrange): # to map residue number of full file to this fragment
 				res_map[residue]=numRes
+				#print "%d %d"%(residue,numRes)
 				numRes+=1
 		
 		for res in sorted (res_map.keys()):
 			
 			ip = res_map[res] # base number for this fragment
 			base_type = self.bpseqinfo[res][0] # base type
+			#print self.bpseqinfo[res][1]
 			if self.bpseqinfo[res][1] != 0: # this is base paired
 				ip_bp = res_map[self.bpseqinfo[res][1]]
 			else:

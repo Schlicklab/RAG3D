@@ -13,20 +13,22 @@ import time
 keys = []
 values = []
 graphID = []
+# S.J. - 05/14/2019 - changes to covert to decimal and sort them here rather than while comparing, so its done in one place
 def loadEigenvalues(num_vertices):
 	#if num_vertices <=2 or num_vertices> 11:
 	if num_vertices <=2 or num_vertices> 14: # S.J. 05/06/2019, updating the number
 		print "number of vertices %d is not supported" %(num_vertices - 1)
 		pass
 	else:
-	
+		decimalPlace = Decimal("0.0001")
 		f = open("%d-vertex" %(num_vertices-1))
 		line = f.readline()
 		keys.append(line[1:-1])
 		while(len(line) > 0):
 			tArray = []
 			while(len(line) > 0 and line[0] != '>'):
-				tArray.append(line[:-1])
+				#tArray.append(line[:-1]) # S.J. - 05/14/2019
+                                tArray.append(Decimal(str(line[:-1])).quantize(decimalPlace))
 				line = f.readline()
 			tArray.sort()
 			values.append(tArray)
@@ -769,26 +771,28 @@ def calcEigen(RNA):
 		decimalPlace = Decimal("0.0001")
 		for i in eigen:
 			decimalArray.append(Decimal(str(i.real)).quantize(decimalPlace))
-		loc = -1
 		#print decimalArray
 		#print "values ", values
-		for i in range(0,len(values)):
-			tArray = []
-			for j in range(0,len(values[i])):
-				tArray.append(Decimal(str(values[i][j])).quantize(decimalPlace))
-			#print tArray
-			if decimalArray == tArray:
-				loc = i
-		#print loc
 		#address negative 0 output
 		for i in range(0,len(decimalArray)):
 			if str(decimalArray[i])[0] == "-":	
 				decimalArray[i] = Decimal(str(decimalArray[i])[1:]).quantize(decimalPlace)
-		evNum = 1
+		#evNum = 1
 		#print 'prout',decimalArray
 		#for i in decimalArray:
 		#	print "Eigenvalue %d: " %(evNum) + str(i)
 			#evNum+= 1
+		
+		loc = -1 # S.J. 05/14/2019 - the change to decimal happens when it is read in loadEigenvalues function
+		for i in range(0,len(values)):
+			#tArray = []
+			#for j in range(0,len(values[i])):
+			#	tArray.append(Decimal(str(values[i][j])).quantize(decimalPlace))
+			tArray = values[i]
+			#print tArray
+			if decimalArray == tArray:
+				loc = i
+		#print loc
         	if loc==-1:
             		print "Error: 100!"
         	else:
@@ -837,11 +841,13 @@ def calcEigen_subgraphs(RNA,myvertices):
 		for i in range(0,len(decimalArray)):
 			if str(decimalArray[i])[0] == "-":
 				decimalArray[i] = Decimal(str(decimalArray[i])[1:]).quantize(decimalPlace)
-		loc = -1
+		
+		loc = -1 # S.J. 05/14/2019 - the change to decimal happens when it is read in loadEigenvalues function
 		for i in range(0,len(values)):
-			tArray = []
-			for j in range(0,len(values[i])):
-				tArray.append(Decimal(str(values[i][j])).quantize(decimalPlace))
+			#tArray = []
+			tArray = values[i]
+			#for j in range(0,len(values[i])):
+			#	tArray.append(Decimal(str(values[i][j])).quantize(decimalPlace))
 			if decimalArray == tArray:
 				loc = i
 		#			#address negative 0 output
