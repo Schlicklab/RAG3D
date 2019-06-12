@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
-# Swati Jain (S.J.) - script for enumerating dual graph using the rules set in various papers
-# 07/06/2018 - takes three integers as command line arguments, 1: number of vertices for which graphs have to be enumerated, 2: number of vertices of subgraph 1, 3: number of vertices of subgraph 2. All graphs with sub 1 vertices and all graphs with sub 2 vertices will be combined to generate new graphs. Assumption: sub 1 vertex >= sub 2 vertex, therefore sub 2 graphs will be added to sub 1 graph
+# Swati Jain (S.J.) - script for enumerating tree graphs
+# 07/06/2018 - takes one integer as command line arguments, 1: number of vertices for which graphs have to be enumeratedi
 
 import sys
 from copy import deepcopy
@@ -31,7 +31,7 @@ def determineUnique(adjMatrix):
     Graphs=UniqueGraphs.get(eigen_tuple,[])
     flag=False
     for g in Graphs:
-	    flag=checkIsomorphism(g.adjMatrix,adjMatrix)
+    	    flag=checkIsomorphism(g.adjMatrix,adjMatrix)
             if flag: # if this is already present, just return
                 #return
                 break
@@ -51,7 +51,9 @@ def enumerateAll():
     basicAdjMat = [[0] * (numVertices) for a in range(numVertices)] # the starting matrix with every element 0
 
     for g in Sub1_Graphs: # for each sub graph to which one vertex has to be added
-        
+
+	print g.graphID
+	        
         basicAdjMat[0:numVertices] = [[0] * (numVertices) for a in range(numVertices)]
         for i in range(0,numVertices-1): # copying the subgraph adjMatrix
             for j in range(0,numVertices-1):
@@ -59,12 +61,12 @@ def enumerateAll():
         
 	for vert in range(0,numVertices-1):
 
+	    print "Attaching new vertex to no: " + str(vert)
 	    curAdjMatrix = deepcopy(basicAdjMat)
 	    curAdjMatrix[vert][numVertices-1] = 1
 	    curAdjMatrix[numVertices-1][vert] = 1
 
             determineUnique(curAdjMatrix)
-
 
 # The main function
 numVertices = int(sys.argv[1])
@@ -74,9 +76,21 @@ total_new_graphs=0
 
 Sub1_Graphs = [] 
 
-adjMatFile = "V%dAdjDG"%(numVertices) # output files for newly enumerated graphs
-eigenFile = "%dEigen"%(numVertices)
+adjMatFile = "V%dAdjDG_unsorted"%(numVertices) # output files for newly enumerated graphs
+eigenFile = "%dEigen_unsorted"%(numVertices)
+
+#adjMatFile2 = "V%dAdjDG_sorted"%(numVertices) # output files for newly enumerated graphs
+#eigenFile2 = "%dEigen_sorted"%(numVertices)
 
 readSubTreeGraphs(numVertices-1,Sub1_Graphs) # read the eigen values and adjacency matrices for dual graphs for Sub1
 
 enumerateAll()
+
+#count = 0
+#for i in sorted(UniqueGraphs.keys()):
+#	graphs = UniqueGraphs.get(i,[])
+#	for g in graphs:
+#		count+=1
+#		g.graphID = "%d_%d"%(numVertices,count)
+#		g.printEigen(eigenFile2)
+#		printMat(g.adjMatrix,adjMatFile2)

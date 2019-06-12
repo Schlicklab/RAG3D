@@ -1,6 +1,7 @@
 #!/usr/loca/bin/python
 # Swati Jain (S.J.) - python file containig generic classes and functions used by different scripts
 # changed to work with tree graphs
+
 import sys
 from copy import deepcopy
 import numpy.linalg as LA
@@ -9,8 +10,7 @@ import os
 from numpy import *
 from itertools import permutations
 
-#class to contain information about dual graphs - 05/17/2018
-# # copied and modified from 2-find_graphID.py
+#class to contain information about tree graphs
 class TreeGraph: # 06/08/2019
     
     def __init__(self,a,b,c,d):
@@ -74,7 +74,6 @@ def printMat(Matrix,filename=None):
 
 
 #function to calculate eigen values of a given adjacency matrix - 05/17/2018
-#copied and modified from dualGraphs.py
 def calcEigenValues(adjMatrix):
 
     laplacian = []
@@ -96,12 +95,10 @@ def calcEigenValues(adjMatrix):
     decimalPlace = Decimal("0.00000001")
     for i in eigen:
         if isinstance(i, complex): # 04/20/2018 - S.J.
-            #print "I have a complex eigen value"
             decimalArray.append(Decimal(str(i.real)).quantize(decimalPlace))
         else:
             decimalArray.append(Decimal(str(i)).quantize(decimalPlace))
     return decimalArray
-
 
 #function to print eigen values in 0.8 precision that are in the form of a decimalArray - 05/17/2018
 # copied and modified from calcEigenvals.py
@@ -125,9 +122,8 @@ def printEigenValues(eigen,filename=None):
     if file is not sys.stdout:
         file.close()
 
-# function to load all dual graph IDs and eigen values from a given file and create dual graph instances - 05/18/2018
-# copied and modified from dualGraphs.py
-# creates the dual graph instances (with vertices, graphID, and eigenvalues set) and adds them to the Graphs list.
+# function to load all tree graph IDs and eigen values from a given file and create tree graph instances
+# creates the tree graph instances (with vertices, graphID, and eigenvalues set) and adds them to the Graphs list.
 def loadEigenvalues(Graphs,num_vertices,file):
     
     decimalPlace = Decimal("0.00000001")
@@ -149,9 +145,8 @@ def loadEigenvalues(Graphs,num_vertices,file):
 
 
 # function to load all adj matrices from given files into the Graphs list - 05/18/2018
-# copied and modified from calcEigenvals.py
-# needs the Graphs list to be already initialized with dual graph instances
-# Assuming that the adjacency matrices are in the same order as eigen values file that was used to initialize the dual graphs in Graphs
+# needs the Graphs list to be already initialized with tree graph instances
+# Assuming that the adjacency matrices are in the same order as eigen values file that was used to initialize the tree graphs in Graphs
 def loadAdjMatrices(Graphs,num_vertices,file):
 
     tempAdjMatrix = []
@@ -175,48 +170,110 @@ def loadAdjMatrices(Graphs,num_vertices,file):
     f.close()
     #print "Read adjacency matrices for %d dual graphs from file %s"%(graph_num,file)
 
+# function to calculate permutations - in case we ever need it
+def calcPermutations(index,prevPermut):
+
+        global PermList
+
+        if index == numVertices:
+                PermList.append(prevPermut)
+                return
+
+        allowed_vertices = []
+        for j in range(0,numVertices):
+                found = False
+                for k in range(0,index):
+                        if j == prevPermut[k]:
+                                found = True
+                if not found:
+                        allowed_vertices.append(j)
+
+        for i in range(0,len(allowed_vertices)):
+
+                curPermut=deepcopy(prevPermut)
+                curPermut[index]=allowed_vertices[i]
+                calcPermutations(index+1,curPermut)
+
+# 06/11/2019 to combine permutations
+def combinePermuts(PermList,i_perm,prevPermut,PermList2):
+
+    if i_perm == len(PermList):
+        PermList2.append(prevPermut)
+        return
+
+    for perm_list in PermList[i_perm]: # for each permutation generated for this particular degree
+        curPermut=deepcopy(prevPermut)
+        for perm in perm_list:
+            curPermut.append(perm)
+        combinePermuts(PermList,i_perm+1,curPermut,PermList2)
 
 # function to check isomorphism for two adjacency matrices - 06/11/2018
 # Removes self-loops before checking for isomorphism
-# Parts of the function taken from label(RNA) function in dualGraphs.py
 # 07/11/2018 - will return the vertex order if that argument is passed
+# 06/11/2019 - changes to have a better check for isomorphism
 def checkIsomorphism(adj_source,adj_toComp,vertexOrder = None):
 
-    source = []
-    toComp = []
-    source = deepcopy(adj_source)
-    #print source
-    toComp = deepcopy(adj_toComp)
-    #print toComp
-    for i in range(0,len(source)): # remove self loops from the adjacency matrix
-        source[i][i] = 0
-        toComp[i][i] = 0
+    deg_source=sum(adj_source,axis=1)
+    deg_toComp=sum(adj_toComp,axis=1)
+    
+    numVertices = len(adj_source)
+    vert_source = range(numVertices)
+    vert_toComp = range(numVertices)
+    
+    deg_source, vert_source = (list(t) for t in zip(*sorted(zip(deg_source, vert_source))))
+    deg_toComp, vert_toComp = (list(t) for t in zip(*sorted(zip(deg_toComp, vert_toComp))))
+    
+    if deg_source != deg_toComp: # if degree sequences are not same, the graphs are not isomorphic
+        return False
+    else:
+        
+        #arrange the toComp matrix according to sorted degree sequence - use this to compare
+        toComp = deepcopy(adj_toComp)
+        for j in range(0,numVertices):
+            jI = vert_toComp[j]
+            for k in range(0,numVertices):
+                kI= vert_toComp[k]
+                toComp[j][k] = adj_toComp[jI][kI]
 
-    permutMatrix = deepcopy(source)
-    num = [] # generating numbers for permutations
-    for i in range(0,len(source)):
-        num.append(i)
+        #generate permutations of the source, but only between the sorted list of source vertices that have the same degree
+        PermList = []
+        uni_deg=sorted(set(deg_source)) # unique degrees
+        uni_deg_numV=[] # number of vertices with that degree
+        for i in uni_deg:
+            num = []
+            for j in range(0,numVertices):
+                if deg_source[j] == i: # this vertex has the degree we are looking at
+                    num.append(vert_source[j])
+            uni_deg_numV.append(len(num))
+            PermList.append(list(permutations(num)))
 
-    for i in list(permutations(num)): # for every permutation of the vertices of the source matrix
-        listI = list(i)
-        for j in range(0,len(permutMatrix)):
-            jI = listI[j]
-            for k in range(0,len(permutMatrix)):
-                kI= listI[k]
-                permutMatrix[j][k] = source[jI][kI] # create the permutation matrix
-            if permutMatrix==toComp: # compare the permutation with the toComp matrix, if same then they are isomorphic
-                if vertexOrder != None: # if vertex order is passed
-                    for i in range(0,len(listI)):
-                        listI[i]+=1
-                        vertexOrder[i]=listI[i]
-                    #print str(vertexOrder)
-                #break
-                return True
+        #take the individual permutations and combine them in a recursive function to create the PermList2
+        PermList2=[]
+        curPermut=[]
+        combinePermuts(PermList,0,curPermut,PermList2)
 
-    return False
+        #for for each of those permutations, arrange the source matrix and compare it to the toComp matrix
+        permutMatrix = deepcopy(adj_source)
+        for i in PermList2: # for every permutation of the vertices of the source matrix
+            listI = list(i)
+            for j in range(0,numVertices):
+                jI = listI[j]
+                for k in range(0,numVertices):
+                    kI= listI[k]
+                    permutMatrix[j][k] = adj_source[jI][kI] # create the permutation matrix
+                if permutMatrix==toComp: # compare the permutation with the toComp matrix, if same then they are isomorphic
+                    if vertexOrder != None: # if vertex order is passed
+                        for i in range(0,len(listI)):
+                            listI[i]+=1
+                            vertexOrder[i]=listI[i]
+                        #print str(vertexOrder)
+                    #break
+                    return True
+
+        return False
 
 # function to assign a graph ID for the given eigenvalue spectrum and adjacency matrix
-# this will do a binary search which will be log(n) time as the read dual graphs are alresdy sorted in the new files
+# this will do a binary search which will be log(n) time as the read tree graphs are alresdy sorted in the new files
 # 08/24/2018
 def searchtoAssignID(Graphs,start,end,eigen,matrix):
     
@@ -256,7 +313,4 @@ def searchtoAssignID(Graphs,start,end,eigen,matrix):
         return searchtoAssignID(Graphs,start,index-1,eigen,matrix)
     elif eigen > Graphs[index].eigenvalues: # search in the right part of the array
         return searchtoAssignID(Graphs,index+1,end,eigen,matrix)
-
-
-
 
