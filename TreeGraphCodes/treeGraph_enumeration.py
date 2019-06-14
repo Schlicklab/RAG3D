@@ -52,9 +52,8 @@ def enumerateAll():
 
     for g in Sub1_Graphs: # for each sub graph to which one vertex has to be added
 
-	print g.graphID
-	        
-        basicAdjMat[0:numVertices] = [[0] * (numVertices) for a in range(numVertices)]
+        print g.graphID
+	basicAdjMat[0:numVertices] = [[0] * (numVertices) for a in range(numVertices)]
         for i in range(0,numVertices-1): # copying the subgraph adjMatrix
             for j in range(0,numVertices-1):
             	basicAdjMat[i][j] = g.adjMatrix[i][j]
@@ -79,18 +78,18 @@ Sub1_Graphs = []
 adjMatFile = "V%dAdjDG_unsorted"%(numVertices) # output files for newly enumerated graphs
 eigenFile = "%dEigen_unsorted"%(numVertices)
 
-#adjMatFile2 = "V%dAdjDG_sorted"%(numVertices) # output files for newly enumerated graphs
-#eigenFile2 = "%dEigen_sorted"%(numVertices)
+adjMatFile2 = "V%dAdjDG"%(numVertices) # output files for newly enumerated graphs
+eigenFile2 = "%dEigen"%(numVertices)
 
 readSubTreeGraphs(numVertices-1,Sub1_Graphs) # read the eigen values and adjacency matrices for dual graphs for Sub1
 
 enumerateAll()
 
-#count = 0
-#for i in sorted(UniqueGraphs.keys()):
-#	graphs = UniqueGraphs.get(i,[])
-#	for g in graphs:
-#		count+=1
-#		g.graphID = "%d_%d"%(numVertices,count)
-#		g.printEigen(eigenFile2)
-#		printMat(g.adjMatrix,adjMatFile2)
+count = 0
+for i in sorted(UniqueGraphs.keys()):
+	graphs = UniqueGraphs.get(i,[])
+	for g in graphs:
+		count+=1
+		g.graphID = "%d_%d"%(numVertices,count)
+		g.printEigen(eigenFile2)
+		printMat(g.adjMatrix,adjMatFile2)
