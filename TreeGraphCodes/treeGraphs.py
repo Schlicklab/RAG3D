@@ -5,29 +5,10 @@ import numpy.linalg as LA
 from decimal import *
 from copy import deepcopy
 from itertools import permutations
+from ClassesFunctions import * # S.J. 06/14/2019 - adding to use its functions
 
-
-keys = []
-values = []
 graphID = []
-def loadEigenvalues(num_vertices):
-    	f = open("%d_vertex.txt" %(num_vertices-1))
-    	#f = open("%d-vertex" %(num_vertices-1))
-	line = f.readline()
-	keys.append(line[1:-1])
-	while(len(line) > 0):
-		tArray = []
-		while(len(line) > 0 and line[0] != '>'):
-			tArray.append(line[:-1])
-			line = f.readline()
-		tArray.sort()
-		values.append(tArray)
-		if(len(line) > 0):
-			keys.append(line[1:-1])	
-		line = f.readline()	
-	f.close()
-
-
+TreeGraphs = [] # S.J. 06/14/2019
 
 class Base:
 	index = None  #nucleotide Index
@@ -636,48 +617,41 @@ def connectNodes(RNA):
 					RNA.degMatrix[j-1][j-1] +=1
 
 #def calcEigen(RNA,arg):
+# S.J. 06/14/2019 - changes to use functions in ClassesFunctions file
 def calcEigen(RNA): # S.J. 07/05/2018 - removing the last argument as that is not needed
+    
 	if len(RNA.Nodes)-1==1:
 		print "1_1" 
 	#elif len(RNA.Nodes)>11:
 	elif len(RNA.Nodes)>14: # S.J. 05/12/2017 - to take into account graph with vertices 11-13
 		print "TMV,%d" %(len(RNA.Nodes)-1)
-	else:
-		loadEigenvalues(len(RNA.Nodes))
+    	else: # S.J. 06/14/2019 - changes to use functions in ClassesFunctions file
+        
+        	eigFile = "%dEigen"%(len(RNA.Nodes)-1)
+        	adjMatFile = "V%dAdjDG"%(len(RNA.Nodes)-1)
+        
+		loadEigenvalues(TreeGraphs,len(RNA.Nodes)-1,eigFile)
+        	loadAdjMatrices(TreeGraphs,len(RNA.Nodes)-1,adjMatFile)
+        
 		RNA.laplacian = numpy.array(RNA.degMatrix) - numpy.array(RNA.adjMatrix)
 		RNA.printLpl()
-		eigen = numpy.sort(LA.eigvals(RNA.laplacian))
-		eigen1 = LA.eigvals(RNA.laplacian)
-		eigvectors = LA.eig(RNA.laplacian)
-		#print eigen1
-		#for l in range(0,len(eigvectors[1])):
-		#	print eigvectors[1][l]
-		decimalArray = []
-		decimalPlace = Decimal("0.0001")
-		for i in eigen:
-			decimalArray.append(Decimal(str(i.real)).quantize(decimalPlace))
-		loc = -1
-		for i in range(0,len(values)):
-			tArray = []
-			for j in range(0,len(values[i])):
-				tArray.append(Decimal(str(values[i][j])).quantize(decimalPlace))
-			if decimalArray == tArray:
-				loc = i
-		#address negative 0 output
-		for i in range(0,len(decimalArray)):
-			if str(decimalArray[i])[0] == "-":	
-				decimalArray[i] = Decimal(str(decimalArray[i])[1:]).quantize(decimalPlace)
-		evNum = 1
-		for i in decimalArray:
-			print "Eigenvalue %d: " %(evNum) + str(i)
-			evNum+= 1
-		#print "%s" %(keys[loc])
-		if (loc == -1):
+        
+		eigen = calcEigenValues(RNA.adjMatrix)
+		printEigenValues(eigen)
+        
+		loc = "NA"
+        	for g in TreeGraphs: # looking for a match in the DualGraphs read earlier
+            		loc = g.match(eigen,RNA.adjMatrix)
+                	if loc != "NA": # match found, print ID
+                    		print "Graph ID: %s"%(loc)
+                    		#print "<a href=http://www.biomath.nyu.edu/rag/tree_topology.php?topo=%s>Graph ID: %s</a>" %(loc, loc)
+                    		graphID.append(loc)
+                    		break
+                
+		if loc == "NA":
 			print "ERROR: 100!"
 			exit()
-		else:
-			print "Graph ID: %s" %(keys[loc])
-			graphID.append(keys[loc])
+
 
 def labelBases(RNA):
 	#this labels the bases NodeNumber. Each node, inner junctions aside, is overlabelled, so that (...) is really #####, rather than 0###0
