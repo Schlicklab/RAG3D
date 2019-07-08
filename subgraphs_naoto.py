@@ -9,35 +9,12 @@ from copy import deepcopy
 from itertools import permutations
 import itertools
 import time
+from ClassesFunctions import * # S.J. 06/14/2019
 
-keys = []
-values = []
+# S.J. 06/14/2019 - changes to use functions in ClassesFunctions.py
+
+TreeGraphsLib=[]
 graphID = []
-# S.J. - 05/14/2019 - changes to covert to decimal and sort them here rather than while comparing, so its done in one place
-def loadEigenvalues(num_vertices):
-	#if num_vertices <=2 or num_vertices> 11:
-	if num_vertices <=2 or num_vertices> 14: # S.J. 05/06/2019, updating the number
-		print "number of vertices %d is not supported" %(num_vertices - 1)
-		pass
-	else:
-		decimalPlace = Decimal("0.0001")
-		f = open("%d-vertex" %(num_vertices-1))
-		line = f.readline()
-		keys.append(line[1:-1])
-		while(len(line) > 0):
-			tArray = []
-			while(len(line) > 0 and line[0] != '>'):
-				#tArray.append(line[:-1]) # S.J. - 05/14/2019
-                                tArray.append(Decimal(str(line[:-1])).quantize(decimalPlace))
-				line = f.readline()
-			tArray.sort()
-			values.append(tArray)
-			if(len(line) > 0):
-				keys.append(line[1:-1])	
-			line = f.readline()	
-		f.close()
-
-
 
 class Base:
 	index = None  #nucleotide Index
@@ -366,6 +343,34 @@ class RNAInfo:
 			if len(item)>1 and len(item)<14: # S.J. 05/06/2019 - updating the number
 				temp.append(item)
         	self.subgraphs=temp
+
+
+# S.J. 06/14/2019 - read the tree graphs all at once
+def readTreeGraphs():
+    
+    Graphs=[]
+    Graphs_dict=dict()
+    TreeGraphsLib.append(Graphs_dict) # for vertex == 1, no graphs are there
+    for i in range(2,14): # will read dual graphs from 2-13 vertices (14 used as the range function stops before the last number)
+        
+        Graphs=[]
+        Graphs_dict=dict()
+        file_eigen = "%dEigen"%i
+        file_adjMat = "V%dAdjDG"%i
+        
+        loadEigenvalues(Graphs,i,file_eigen) # load eigen values for dual graphs for vertex number i
+        loadAdjMatrices(Graphs,i,file_adjMat) # load adjacency matrices for dual graphs for vertex number i
+        
+        # convert the list into a dictionary
+        for g in Graphs:
+        
+            eigen_tuple=tuple(g.eigenvalues)
+            graph_list=Graphs_dict.get(eigen_tuple,[])
+            graph_list.append(g)
+            Graphs_dict[eigen_tuple]=graph_list
+        
+        # add the dictionary to the library
+        TreeGraphsLib.append(Graphs_dict)
 
 ### makeMatrices ####
 #####################
@@ -753,6 +758,7 @@ def connectNodes(RNA):
 					RNA.degMatrix[i-1][i-1] +=1
 					RNA.degMatrix[j-1][j-1] +=1
 
+# S.J. - 06/14/2019 - changes to use the already read in tree graph library
 #def calcEigen(RNA,arg):
 def calcEigen(RNA):
 	if len(RNA.Nodes)-1==1:
@@ -761,108 +767,112 @@ def calcEigen(RNA):
 	elif len(RNA.Nodes)>14: # S.J. 05/06/2019 - updating the vertex number
 		print "This structure contains %d vertices" %(len(RNA.Nodes)-1)
 	else:
-		#print "length of nodes ",len(RNA.Nodes)-1
-		loadEigenvalues(len(RNA.Nodes))
-		RNA.laplacian = array(RNA.degMatrix) - array(RNA.adjMatrix)
-		#RNA.printLpl()
-		eigen = sort(LA.eigvals(RNA.laplacian))
-		#print eigen
-		decimalArray = []
-		decimalPlace = Decimal("0.0001")
-		for i in eigen:
-			decimalArray.append(Decimal(str(i.real)).quantize(decimalPlace))
-		#print decimalArray
-		#print "values ", values
-		#address negative 0 output
-		for i in range(0,len(decimalArray)):
-			if str(decimalArray[i])[0] == "-":	
-				decimalArray[i] = Decimal(str(decimalArray[i])[1:]).quantize(decimalPlace)
-		#evNum = 1
-		#print 'prout',decimalArray
-		#for i in decimalArray:
-		#	print "Eigenvalue %d: " %(evNum) + str(i)
-			#evNum+= 1
-		
-		loc = -1 # S.J. 05/14/2019 - the change to decimal happens when it is read in loadEigenvalues function
-		for i in range(0,len(values)):
-			#tArray = []
-			#for j in range(0,len(values[i])):
-			#	tArray.append(Decimal(str(values[i][j])).quantize(decimalPlace))
-			tArray = values[i]
-			#print tArray
-			if decimalArray == tArray:
-				loc = i
-		#print loc
-        	if loc==-1:
-            		print "Error: 100!"
-        	else:
-            		print "\nGraph ID: %s\n" %(keys[loc])
-            		graphID.append(keys[loc])
+        
+       		treeDict = TreeGraphsLib[len(RNA.Nodes)-2] # the index is -2 for that vertex number dictionary
+        	eigen = calcEigenValues(RNA.adjMatrix)
+        	eigen_tuple=tuple(eigen) # converting it into a tuple to access the graph dict
+       		graph_list=treeDict.get(eigen_tuple,[])
+        
+        	loc = "NA"
+        	for g in graph_list: # looking for a match in the DualGraphs read earlier
+            		loc = g.match(eigen,RNA.adjMatrix)
+            		if loc != "NA": # match found, print ID
+                		print "\nGraph ID: %s\n"%(loc)
+                		#print "<a href=http://www.biomath.nyu.edu/rag/tree_topology.php?topo=%s>Graph ID: %s</a>" %(loc, loc)
+                		graphID.append(loc)
+                		break
+            
+        	if loc == "NA":
+            		print "ERROR: 100!"
+            		exit()
 
+# S.J. - 06/14/2019 changes to use already read tree graphs lib
 ### NEW ###
 def calcEigen_subgraphs(RNA,myvertices):
 	for v in myvertices:
-		loadEigenvalues(len(v)+1)
+		treeDict = TreeGraphsLib[len(v)-1] 
 		subadjacency=[]
-		subdegree=[]
+		#subdegree=[]
 		for k in v:
 			tArray=[]
 			for l in v:
 				tArray.append(RNA.adjMatrix[k][l])
 			subadjacency.append(tArray)
 
-		for i in range(len(v)):
-			tArray1 = []
-			for j in range(len(v)):
-				tArray1.append(0)
-			subdegree.append(tArray1)
+		#for i in range(len(v)):
+		#	tArray1 = []
+		#	for j in range(len(v)):
+		#		tArray1.append(0)
+		#	subdegree.append(tArray1)
 
-		for a in range(len(v)):
-			som=[]
-			for b in range(len(v)):
-				som.append(subadjacency[a][b])
+		#for a in range(len(v)):
+		#	som=[]
+		#	for b in range(len(v)):
+		#		som.append(subadjacency[a][b])
 
-			somm=0
-			for c in range(len(som)):
-				somm=somm+som[c]
+		#	somm=0
+		#	for c in range(len(som)):
+		#		somm=somm+som[c]
 
-			subdegree[a][a]=somm
-
-
-		sublaplacian = array(subdegree) - array(subadjacency)
-
-		Arraylaplacian = array(sublaplacian)
-		eigen = sort(LA.eigvals(Arraylaplacian))
-
-		decimalArray = []
-		decimalPlace = Decimal("0.0001")
-		for i in eigen:
-			decimalArray.append(Decimal(str(i.real)).quantize(decimalPlace))
-		for i in range(0,len(decimalArray)):
-			if str(decimalArray[i])[0] == "-":
-				decimalArray[i] = Decimal(str(decimalArray[i])[1:]).quantize(decimalPlace)
+		#	subdegree[a][a]=somm
 		
-		loc = -1 # S.J. 05/14/2019 - the change to decimal happens when it is read in loadEigenvalues function
-		for i in range(0,len(values)):
+		eigen = calcEigenValues(subadjacency)
+                eigen_tuple=tuple(eigen) # converting it into a tuple to access the graph dict
+                graph_list=treeDict.get(eigen_tuple,[])
+
+                loc = "NA"
+		if len(graph_list) > 1: # only check isomorphism when there are more than two graphs
+                	for g in graph_list: # looking for a match in the DualGraphs read earlier
+                        	loc = g.match(eigen,subadjacency)
+                        	if loc != "NA": # match found, print ID
+                                	break
+		else:
+			loc = graph_list[0].graphID
+
+                if loc == "NA":
+                        print "Error: 101!"
+                        exit()
+		else:
+			v.sort()
+                        str1=' '.join(str(e) for e in v)
+                        print "Subgraph ID: %s\t%s\n" %(loc,str1)
+                        #print "<a href=http://www.biomath.nyu.edu/rag/tree_topology.php?topo=%s>Graph ID: %s</a>" %(loc, loc)
+                        graphID.append(loc)
+
+		#sublaplacian = array(subdegree) - array(subadjacency)
+
+		#Arraylaplacian = array(sublaplacian)
+		#eigen = sort(LA.eigvals(Arraylaplacian))
+
+		#decimalArray = []
+		#decimalPlace = Decimal("0.0001")
+		#for i in eigen:
+		#	decimalArray.append(Decimal(str(i.real)).quantize(decimalPlace))
+		#for i in range(0,len(decimalArray)):
+		#	if str(decimalArray[i])[0] == "-":
+		#		decimalArray[i] = Decimal(str(decimalArray[i])[1:]).quantize(decimalPlace)
+		
+		#loc = -1 # S.J. 05/14/2019 - the change to decimal happens when it is read in loadEigenvalues function
+		#for i in range(0,len(values)):
 			#tArray = []
-			tArray = values[i]
+		#	tArray = values[i]
 			#for j in range(0,len(values[i])):
 			#	tArray.append(Decimal(str(values[i][j])).quantize(decimalPlace))
-			if decimalArray == tArray:
-				loc = i
+		#	if decimalArray == tArray:
+		#		loc = i
 		#			#address negative 0 output
 		#evNum = 1
 		#for i in decimalArray:
 		#	print "Eigenvalue %d: " %(evNum) + str(i)
 		#	evNum+= 1
 		#print "\nGraph ID: %s\n" %(keys[loc])
-		if loc==-1:
-			print "Error: 101!"
-		else:
-			graphID.append(keys[loc])
-			v.sort()
-			str1=' '.join(str(e) for e in v)
-			print "Subgraph ID: %s\t%s\n" %(keys[loc],str1)
+		#if loc==-1:
+		#	print "Error: 101!"
+		#else:
+		#	graphID.append(keys[loc])
+		#	v.sort()
+		#	str1=' '.join(str(e) for e in v)
+		#	print "Subgraph ID: %s\t%s\n" %(keys[loc],str1)
 
 
 
@@ -950,7 +960,9 @@ def label(RNA):
 			print "No matching adjacency found."
 
 def main():	
-	start=time.time()		
+	start=time.time()
+	readTreeGraphs() # S.J. 06/11/2019 - reading all the graphs all at once and not again and again
+		
 	#for arg in sys.argv[1:]:
 	for i in range(1,len(sys.argv)): # S.J. 05/14/2018 - changed the for loop to range over indices
 
@@ -962,10 +974,6 @@ def main():
                         calcEigen_subgraphs(RNA,RNA.subgraphs)
 			break
 		
-		#if arg[-2:] == "ct":
-		#	RNA = getCTInfo(arg)
-		#else:
-		#	RNA = getBPSEQInfo(arg)
 		if sys.argv[i][-2:] == "ct":
 			RNA = getCTInfo(sys.argv[i])
 		else:

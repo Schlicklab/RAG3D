@@ -12,6 +12,7 @@ from RAG_v2 import Structure
 # sys.argv[1] is a list of PDB files to be processed (without extension)
 
 output_path="/ts_home/sj78/labwork/RAG-3D-Database/"
+#output_path="./RAG-3D-Test/"
 
 try:
 	os.makedirs(output_path)
@@ -27,13 +28,13 @@ for pdb in files:
 	pdb = pdb.strip()
 	print pdb
     
-    	f1="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_noPK/%s.bpseq"%pdb
-    	f2="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_noPK/LoopsVertices/Loops/Loops%s.txt"%pdb
-    	f3="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_noPK/LoopsVertices/Graphs/%s_PDBGraph.pdb"%pdb
-    	f4="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_noPK/LoopsVertices/Vertices/Vertices%s.txt"%pdb
+    	f1="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_LC_noPK/%s.bpseq"%pdb
+    	f2="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_LC_noPK/LoopsVertices/Loops/Loops%s.txt"%pdb
+    	f3="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_LC_noPK/LoopsVertices/Graphs/%s_PDBGraph.pdb"%pdb
+    	f4="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_LC_noPK/LoopsVertices/Vertices/Vertices%s.txt"%pdb
     	f5="/ts_home/sj78/labwork/AllRNADataset_August2018/RNAPDBs/%s.pdb"%pdb
     	f6="/ts_home/sj78/labwork/RAG-3D-Database/PdbToNb.txt"
-	f7="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_noPK/LoopsVertices/VertexTypes/VertexTypes%s.txt"%pdb
+	f7="/Users/sj78/Documents/labwork/Amiel/FinalBPSEQs_LC_noPK/LoopsVertices/VertexTypes/VertexTypes%s.txt"%pdb
 
 	#S.J.R=Structure(pdb,f1,f2,f3,f4,f5,f6,output_path)
 	R=Structure(pdb,f1,f2,f3,f4,f5,f6,f7,output_path)
