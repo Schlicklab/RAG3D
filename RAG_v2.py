@@ -83,9 +83,9 @@ class Structure:
 
 		#subgraph_naoto.py is the modified version of the RNA matrix code
 		sfile=self.Subgraphs_dir + self.name + "-subgraphs"
-		temp_file="Temp_Subgraph_files/" + self.name + "-subgraphs-temp"
+		#temp_file="New_Temp_Subgraph_files/" + self.name + "-subgraphs-temp"
 		#temp_file="temp.txt"
-		#os.system('/usr/bin/python2.7 subgraphs_naoto.py  %s > %s'%(self.bpseqfile,"temp.txt")) # S.J. 05/09/2019 - changes to read the number of vertices for structures with more than 13 vertices correctly as well
+		os.system('/usr/bin/python2.7 subgraphs_naoto.py  %s > %s'%(self.bpseqfile,"temp.txt")) # S.J. 05/09/2019 - changes to read the number of vertices for structures with more than 13 vertices correctly as well
 		os.system('grep "Subgraph" %s | sort -nrk 3,3 > %s'%(temp_file,sfile))
 		temp_f=open(temp_file,"r")
 		temp_line=temp_f.readline()
@@ -243,11 +243,23 @@ class Structure:
 				else:
 					self.loopinfo.append(all_loops[i])
 					Ngraph.append(AllNgraph[i])
+			elif "Hairpin" in all_loops[i]: # S.J. 07/10/2019 - to ignore haipin loops without resdiues - need to change this so that this is ignored only for building the database
+				num_of_hairpin+=1
+				columns=all_loops[i].split()
+				if int(columns[4])-int(columns[2])<=1:
+					temp=[]
+					temp.append(int(columns[2]))
+                                        temp.append(int(columns[4]))
+                                        ignored_loops.append(temp)
+					continue
+				else:
+					self.loopinfo.append(all_loops[i])
+                                	Ngraph.append(AllNgraph[i])
 			else:
 				self.loopinfo.append(all_loops[i])
 				Ngraph.append(AllNgraph[i])
-				if "Hairpin" in all_loops[i]:
-					num_of_hairpin+=1
+				# SJ -if "Hairpin" in all_loops[i]:
+				#	num_of_hairpin+=1
 		for item in self.loopinfo:
 			infofile.write(item)
 		infofile.write("\nTotal Hairpins: %d\n"%num_of_hairpin)
